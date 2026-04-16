@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kaleo Inventory">
+<title>Kaleo Coffee — Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  --green: #6B6B3F; --green-bg: #f3f3ec; --green-border: #c8c8a0;
+  --yellow: #C08A3C; --yellow-bg: #faf3e8; --yellow-border: #e0c690;
+  --red: #A85E3E; --red-bg: #f8f0ec; --red-border: #d4a88c;
+  --brand: #4A6A7A; --brand-light: #edf2f5; --brand-dark: #3F5B55;
+  --slate: #4A6A7A; --teal: #3F5B55; --olive: #6B6B3F; --amber: #C08A3C; --terra: #A85E3E; --forest: #404F49; --mist: #B8C4CD;
+  --gray-50: #f7f7f5; --gray-100: #f0efed; --gray-200: #e0dfdb;
+  --gray-300: #ccc9c4; --gray-400: #9a9690; --gray-500: #6e6b65;
+  --gray-700: #3d3b37; --gray-800: #2a2926; --gray-900: #1a1918;
+  --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; padding-bottom: 100px; }
+
+/* ---- Login Screen ---- */
+#login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 24px; background: linear-gradient(170deg, #f7f7f5 0%, #edf2f5 40%, #f3f3ec 70%, #f7f7f5 100%); }
+#login-screen .logo-wrap { margin-bottom: 40px; text-align: center; }
+#login-screen .logo-wrap svg { width: 320px; height: auto; }
+#login-screen .pin-label { font-family: 'El Messiri', sans-serif; font-size: 13px; color: var(--gray-400); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: 500; }
+.pin-dots { display: flex; gap: 14px; margin-bottom: 36px; }
+.pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--mist); background: #fff; transition: all 0.15s; }
+.pin-dot.filled { background: var(--slate); border-color: var(--slate); }
+.pin-dot.error { background: var(--terra); border-color: var(--terra); animation: shake 0.4s; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.pin-pad { display: grid; grid-template-columns: repeat(3, 76px); gap: 14px; }
+.pin-btn { width: 76px; height: 76px; border-radius: 50%; border: 1px solid var(--gray-200); background: #fff; font-family: 'Lora', serif; font-size: 26px; font-weight: 400; color: var(--gray-800); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; user-select: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.pin-btn:active { background: var(--brand-light); border-color: var(--slate); }
+.pin-btn.fn { font-family: 'El Messiri', sans-serif; font-size: 13px; letter-spacing: 1px; color: var(--gray-400); border: none; background: transparent; box-shadow: none; }
+.login-error { color: var(--terra); font-size: 14px; margin-top: 16px; min-height: 20px; }
+
+/* ---- Top Nav ---- */
+.top-bar { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid var(--gray-200); padding: 10px 20px; }
+.top-bar-row { display: flex; align-items: center; justify-content: space-between; }
+.top-bar .bar-logo { font-family: 'Didot','Bodoni MT','Playfair Display','Georgia',serif; font-size: 20px; font-weight: 400; letter-spacing: 6px; color: var(--olive); }
+.top-bar .user-info { display: flex; align-items: center; gap: 8px; }
+.top-bar .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--slate); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; font-family: 'Lora', serif; }
+.top-bar .user-name { font-weight: 600; font-size: 14px; }
+.top-bar .user-role { font-size: 11px; color: var(--gray-400); }
+.logout-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--gray-200); background: #fff; font-family: 'El Messiri', sans-serif; font-size: 12px; letter-spacing: 0.5px; color: var(--gray-400); cursor: pointer; transition: all 0.15s; }
+.logout-btn:active { background: var(--gray-100); }
+
+/* ---- Tab Nav ---- */
+.tab-nav { display: flex; gap: 0; background: #fff; border-bottom: 1px solid var(--gray-200); padding: 0 20px; }
+.tab-btn { padding: 14px 20px; border: none; background: none; font-family: 'El Messiri', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; color: var(--gray-400); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+.tab-btn.active { color: var(--slate); border-bottom-color: var(--slate); }
+
+/* ---- Count View ---- */
+.section-header { padding: 16px 20px 8px; font-family: 'El Messiri', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--gray-400); background: var(--gray-50); position: sticky; top: 61px; z-index: 50; }
+.item-card { display: flex; align-items: center; padding: 14px 20px; background: #fff; border-bottom: 1px solid var(--gray-100); gap: 12px; }
+.item-status { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.item-status.in-stock { background: var(--olive); }
+.item-status.order-now { background: var(--amber); }
+.item-status.out-of-stock { background: var(--terra); }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { font-size: 12px; color: var(--gray-400); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+.item-notes-indicator { display: inline-flex; align-items: center; gap: 3px; color: var(--slate); cursor: pointer; font-weight: 500; }
+.item-input { width: 72px; height: 44px; border-radius: 10px; border: 2px solid var(--gray-200); text-align: center; font-family: 'Lora', serif; font-size: 18px; font-weight: 600; color: var(--gray-800); background: var(--gray-50); outline: none; -webkit-appearance: none; }
+.item-input:focus { border-color: var(--slate); background: #fff; }
+.item-input.changed { border-color: var(--slate); background: var(--brand-light); }
+.item-target { font-size: 12px; color: var(--gray-400); text-align: center; margin-top: 2px; }
+.item-due { display: inline-block; font-family: 'El Messiri', sans-serif; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 4px; }
+.item-due.overdue { background: var(--red-bg); color: var(--terra); border: 1px solid var(--red-border); }
+.item-due.due-today { background: var(--yellow-bg); color: var(--amber); border: 1px solid var(--yellow-border); }
+.item-due.up-to-date { background: var(--green-bg); color: var(--olive); border: 1px solid var(--green-border); }
+
+/* ---- Task Banner ---- */
+.task-banner { padding: 14px 20px; display: flex; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; background: #fff; border-bottom: 1px solid var(--gray-200); }
+.task-banner::-webkit-scrollbar { display: none; }
+.task-chip { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-family: 'El Messiri', sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-700); transition: all 0.15s; }
+.task-chip.active { color: #fff; }
+.task-chip .task-count { font-weight: 700; font-size: 15px; }
+.task-chip.overdue { border-color: var(--red-border); background: var(--red-bg); color: var(--terra); }
+.task-chip.overdue.active { background: var(--terra); color: #fff; border-color: var(--terra); }
+.task-chip.due-today { border-color: var(--yellow-border); background: var(--yellow-bg); color: var(--amber); }
+.task-chip.due-today.active { background: var(--amber); color: #fff; border-color: var(--amber); }
+.task-chip.all-items { border-color: var(--gray-200); }
+.task-chip.all-items.active { background: var(--slate); color: #fff; border-color: var(--slate); }
+
+/* ---- Notes Popup ---- */
+.notes-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-end; justify-content: center; }
+.notes-overlay.show { display: flex; }
+.notes-popup { background: #fff; border-radius: 16px 16px 0 0; padding: 24px; width: 100%; max-width: 500px; max-height: 50vh; }
+.notes-popup h3 { font-size: 16px; margin-bottom: 8px; }
+.notes-popup p { font-size: 14px; color: var(--gray-500); line-height: 1.5; }
+.notes-popup .close-btn { margin-top: 16px; width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--gray-100); font-size: 15px; font-weight: 600; cursor: pointer; }
+
+/* ---- Filter Bar ---- */
+.filter-bar { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; background: #fff; border-bottom: 1px solid var(--gray-200); }
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--gray-200); background: #fff; font-family: 'El Messiri', sans-serif; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; color: var(--gray-700); transition: all 0.15s; }
+.filter-chip.active { background: var(--slate); color: #fff; border-color: var(--slate); }
+.filter-chip .count { margin-left: 4px; opacity: 0.7; }
+
+/* ---- Submit Bar ---- */
+.submit-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 20px; background: #fff; border-top: 1px solid var(--gray-200); z-index: 100; display: none; }
+.submit-bar.show { display: block; }
+.submit-btn { width: 100%; padding: 16px; border-radius: 10px; border: none; background: var(--slate); color: #fff; font-family: 'El Messiri', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.submit-btn:active { background: var(--teal); }
+.changes-badge { background: rgba(255,255,255,0.25); padding: 2px 10px; border-radius: 12px; font-size: 13px; }
+
+/* ---- Dashboard ---- */
+.dash-header { padding: 24px 20px 16px; }
+.dash-header h1 { font-family: 'El Messiri', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 1px; color: var(--gray-800); }
+.dash-header p { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 20px 20px; }
+.stat-card { background: #fff; border-radius: var(--radius); padding: 20px; border: 2px solid var(--gray-200); cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+.stat-card:active { transform: scale(0.97); }
+.stat-card .stat-num { font-family: 'Lora', serif; font-size: 36px; font-weight: 700; }
+.stat-card .stat-label { font-family: 'El Messiri', sans-serif; font-size: 12px; color: var(--gray-400); margin-top: 4px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+.stat-card.red .stat-num { color: var(--terra); }
+.stat-card.yellow .stat-num { color: var(--amber); }
+.stat-card.green .stat-num { color: var(--olive); }
+.stat-card.active { border-color: var(--slate); box-shadow: 0 0 0 2px rgba(74,106,122,0.15); }
+.stat-card.red.active { border-color: var(--terra); box-shadow: 0 0 0 2px rgba(168,94,62,0.15); }
+.stat-card.yellow.active { border-color: var(--amber); box-shadow: 0 0 0 2px rgba(192,138,60,0.15); }
+.alert-list { padding: 0 20px 20px; }
+.alert-section-title { font-family: 'El Messiri', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--gray-400); padding: 16px 0 8px; }
+.alert-item { display: flex; align-items: center; padding: 12px 16px; background: #fff; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--terra); }
+.alert-item.warning { border-left-color: var(--amber); }
+.alert-item .alert-name { font-weight: 600; font-size: 15px; }
+.alert-item .alert-detail { font-size: 12px; color: var(--gray-400); }
+.alert-item .alert-stock { font-family: 'Lora', serif; font-weight: 700; font-size: 20px; }
+
+/* ---- Settings ---- */
+.settings-section { padding: 20px; }
+.settings-section h2 { font-family: 'El Messiri', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: 1px; margin-bottom: 16px; color: var(--gray-800); }
+.settings-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--gray-200); padding: 16px; margin-bottom: 12px; }
+.settings-card label { font-family: 'El Messiri', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: var(--gray-400); display: block; margin-bottom: 6px; }
+.settings-card input, .settings-card select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--gray-200); font-family: 'Lora', serif; font-size: 15px; outline: none; }
+.settings-card input:focus, .settings-card select:focus { border-color: var(--slate); }
+.barista-list { list-style: none; }
+.barista-list li { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+.barista-list .pin-display { font-family: monospace; font-size: 15px; color: var(--gray-500); }
+.add-btn { padding: 10px 20px; border-radius: 8px; border: 2px dashed var(--gray-300); background: none; font-family: 'El Messiri', sans-serif; font-size: 14px; color: var(--gray-400); cursor: pointer; width: 100%; margin-top: 8px; }
+.save-settings-btn { padding: 14px; border-radius: 10px; border: none; background: var(--slate); color: #fff; font-family: 'El Messiri', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; width: 100%; margin-top: 16px; }
+
+/* ---- Team member cards ---- */
+.team-card { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--gray-100); cursor: pointer; gap: 12px; }
+.team-card:last-child { border-bottom: none; }
+.team-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--slate); color: #fff; display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-weight: 600; font-size: 15px; flex-shrink: 0; }
+.team-info { flex: 1; }
+.team-name { font-weight: 600; font-size: 15px; }
+.team-meta { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+.team-arrow { color: var(--gray-300); font-size: 18px; }
+
+/* ---- User profile overlay ---- */
+.profile-overlay { display: none; position: fixed; inset: 0; background: var(--gray-50); z-index: 300; overflow-y: auto; }
+.profile-overlay.show { display: block; }
+.profile-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: #fff; border-bottom: 1px solid var(--gray-200); }
+.profile-back { border: none; background: none; font-size: 24px; color: var(--slate); cursor: pointer; padding: 4px 8px; }
+.profile-title { font-family: 'El Messiri', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+.profile-body { padding: 20px; }
+.profile-field { margin-bottom: 16px; }
+.profile-field label { font-family: 'El Messiri', sans-serif; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gray-400); display: block; margin-bottom: 6px; }
+.profile-field input, .profile-field select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--gray-200); font-family: 'Lora', serif; font-size: 15px; background: #fff; }
+.profile-field input:focus, .profile-field select:focus { border-color: var(--slate); outline: none; }
+.activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-100); }
+.activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--slate); margin-top: 6px; flex-shrink: 0; }
+.activity-text { font-size: 13px; color: var(--gray-700); line-height: 1.4; }
+.activity-time { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.profile-save { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--slate); color: #fff; font-family: 'El Messiri', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; margin-top: 8px; }
+.profile-delete { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--terra); background: none; color: var(--terra); font-family: 'El Messiri', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+
+/* ---- Item management list ---- */
+.item-mgmt-search { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--gray-200); font-family: 'Lora', serif; font-size: 15px; margin-bottom: 12px; background: #fff; }
+.item-mgmt-search:focus { border-color: var(--slate); outline: none; }
+.item-mgmt-list { max-height: 50vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.item-mgmt-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); cursor: pointer; gap: 10px; }
+.item-mgmt-row:active { background: var(--gray-50); }
+.item-mgmt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.item-mgmt-name { flex: 1; font-size: 14px; font-weight: 500; }
+.item-mgmt-detail { font-size: 12px; color: var(--gray-400); text-align: right; }
+.item-mgmt-freq { display: inline-block; font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--gray-100); color: var(--gray-500); margin-left: 6px; }
+
+/* ---- Activity log ---- */
+.log-entry { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
+.log-time { flex-shrink: 0; width: 110px; color: var(--gray-400); font-size: 12px; }
+.log-body { flex: 1; color: var(--gray-700); }
+.log-user { font-weight: 600; color: var(--gray-800); }
+
+/* ---- Success Toast ---- */
+.toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--teal); color: #fff; padding: 14px 24px; border-radius: 10px; font-family: 'El Messiri', sans-serif; font-weight: 600; font-size: 15px; letter-spacing: 0.3px; z-index: 999; transition: transform 0.3s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ---- Email Config ---- */
+.email-info { background: var(--brand-light); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+.email-info p { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+/* ---- Responsive ---- */
+@media (min-width: 768px) {
+  .stat-grid { grid-template-columns: repeat(4, 1fr); max-width: 700px; }
+  .item-card { padding: 14px 24px; }
+}
+
+/* Hidden utility */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="logo-wrap">
+    <svg viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+      <text x="140" y="40" text-anchor="middle" font-family="'Didot','Bodoni MT','Playfair Display','Georgia',serif" font-size="48" font-weight="400" letter-spacing="10" fill="#6B6B3F">KALEO</text>
+      <text x="140" y="62" text-anchor="middle" font-family="'Didot','Bodoni MT','Playfair Display','Georgia',serif" font-size="15" font-weight="400" letter-spacing="6" fill="#6B6B3F">COFFEE HOUSE</text>
+      <text x="140" y="77" text-anchor="middle" font-family="'El Messiri',sans-serif" font-size="10" font-weight="500" letter-spacing="2" fill="#9a9690">INVENTORY MANAGEMENT</text>
+    </svg>
+  </div>
+  <div class="pin-label">Enter your PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="dot-0"></div>
+    <div class="pin-dot" id="dot-1"></div>
+    <div class="pin-dot" id="dot-2"></div>
+    <div class="pin-dot" id="dot-3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinInput('1')">1</button>
+    <button class="pin-btn" onclick="pinInput('2')">2</button>
+    <button class="pin-btn" onclick="pinInput('3')">3</button>
+    <button class="pin-btn" onclick="pinInput('4')">4</button>
+    <button class="pin-btn" onclick="pinInput('5')">5</button>
+    <button class="pin-btn" onclick="pinInput('6')">6</button>
+    <button class="pin-btn" onclick="pinInput('7')">7</button>
+    <button class="pin-btn" onclick="pinInput('8')">8</button>
+    <button class="pin-btn" onclick="pinInput('9')">9</button>
+    <button class="pin-btn fn" onclick="pinClear()">Clear</button>
+    <button class="pin-btn" onclick="pinInput('0')">0</button>
+    <button class="pin-btn fn" onclick="pinDelete()">&#9003;</button>
+  </div>
+  <div class="login-error" id="login-error"></div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app-screen" class="hidden">
+  <div class="top-bar">
+    <div class="top-bar-row">
+      <div class="user-info">
+        <div class="avatar" id="user-avatar"></div>
+        <div>
+          <div class="user-name" id="user-name"></div>
+          <div class="user-role" id="user-role"></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Sign Out</button>
+      </div>
+      <div class="bar-logo">KALEO</div>
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" data-tab="count" onclick="switchTab('count')">Count</button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div id="tab-dashboard">
+    <div class="dash-header">
+      <h1>Inventory Dashboard</h1>
+      <p id="dash-date"></p>
+    </div>
+    <div class="stat-grid" id="stat-grid"></div>
+    <div class="alert-list" id="alert-list"></div>
+  </div>
+
+  <!-- COUNT TAB -->
+  <div id="tab-count" class="hidden">
+    <div class="task-banner" id="task-banner"></div>
+    <div class="filter-bar" id="filter-bar"></div>
+    <div id="item-list"></div>
+    <div class="submit-bar" id="submit-bar">
+      <button class="submit-btn" onclick="submitCount()">
+        Submit Count <span class="changes-badge" id="changes-count">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="tab-settings" class="hidden">
+    <div class="settings-section">
+      <h2>Notification Settings</h2>
+      <div class="email-info">
+        <p>Reorder alerts will be emailed to the GM whenever a barista submits a count that includes items at or below reorder level.</p>
+      </div>
+      <div class="settings-card">
+        <label>GM Email Address</label>
+        <input type="email" id="gm-email" value="jessica@kaleocoffeehouse.com">
+      </div>
+      <div class="settings-card">
+        <label>Email notifications</label>
+        <select id="notify-setting">
+          <option value="always">Every count with alerts</option>
+          <option value="daily">Daily digest (end of day)</option>
+          <option value="off">Disabled</option>
+        </select>
+      </div>
+
+      <h2 style="margin-top: 24px;">Team</h2>
+      <div class="settings-card">
+        <div id="team-list"></div>
+        <button class="add-btn" onclick="addBarista()">+ Add Team Member</button>
+      </div>
+
+      <h2 style="margin-top: 24px;">Item Management</h2>
+      <div class="settings-card">
+        <input type="text" class="item-mgmt-search" id="item-mgmt-search" placeholder="Search items..." oninput="renderItemMgmt()">
+        <div class="item-mgmt-list" id="item-mgmt-list"></div>
+      </div>
+
+      <h2 style="margin-top: 24px;">Activity Log</h2>
+      <div class="settings-card" style="max-height: 400px; overflow-y: auto;">
+        <div id="activity-log"></div>
+      </div>
+
+      <button class="save-settings-btn" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+
+  <!-- User Profile Overlay -->
+  <div class="profile-overlay" id="profile-overlay">
+    <div class="profile-header">
+      <button class="profile-back" onclick="closeProfile()">&larr;</button>
+      <div class="profile-title" id="profile-title">Team Member</div>
+    </div>
+    <div class="profile-body">
+      <div class="profile-field">
+        <label>Name</label>
+        <input type="text" id="profile-name">
+      </div>
+      <div class="profile-field">
+        <label>PIN</label>
+        <input type="text" id="profile-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+      </div>
+      <div class="profile-field">
+        <label>Role</label>
+        <select id="profile-role">
+          <option value="Barista">Barista</option>
+          <option value="General Manager">General Manager</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; font-size: 13px; color: var(--gray-500);">
+        <div>Last login: <strong id="profile-last-login">—</strong></div>
+      </div>
+      <button class="profile-save" onclick="saveProfile()">Save Changes</button>
+      <button class="profile-delete" onclick="deleteProfile()">Remove Team Member</button>
+
+      <h2 style="margin-top: 28px; font-size: 16px; font-weight: 700;">Recent Activity</h2>
+      <div id="profile-activity" style="margin-top: 8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Notes Popup -->
+<div class="notes-overlay" id="notes-overlay" onclick="closeNotes(event)">
+  <div class="notes-popup">
+    <h3 id="notes-title"></h3>
+    <p id="notes-body"></p>
+    <button class="close-btn" onclick="closeNotesBtn()">Got it</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Item Editor Modal -->
+<div class="notes-overlay" id="editor-overlay" onclick="closeEditor(event)">
+  <div class="notes-popup" style="max-height: 80vh; overflow-y: auto;">
+    <h3>Edit Item</h3>
+    <div style="margin-top: 12px;">
+      <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Item Name</label>
+      <input id="edit-name" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 12px;">
+      <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Reorder Threshold</label>
+      <input id="edit-threshold" type="number" step="0.25" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 12px;">
+      <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Reorder Quantity</label>
+      <input id="edit-needed" type="number" step="0.5" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 4px;">
+      <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 12px;">How many to order when restocking.</div>
+      <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Usage Per Week</label>
+      <input id="edit-usage" type="number" step="0.5" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 12px;">
+      <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Lead Time</label>
+      <input id="edit-leadtime" type="text" placeholder="e.g. 2 days, Next-day delivery, Same day" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 4px;">
+      <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 12px;">How long from order to delivery. Helps determine par level.</div>
+      <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Notes / Instructions</label>
+      <textarea id="edit-notes" rows="3" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; resize: vertical;"></textarea>
+    </div>
+    <button class="close-btn" style="background: var(--brand); color: #fff; margin-top: 12px;" onclick="saveItemEdit()">Save Changes</button>
+    <button class="close-btn" onclick="closeEditorBtn()">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ========== DATA ==========
+const BARISTAS = [
+  { name: "Jessica", pin: "1234", role: "General Manager" },
+  { name: "Alex", pin: "5678", role: "Barista" },
+  { name: "Sam", pin: "9012", role: "Barista" },
+  { name: "Jordan", pin: "3456", role: "Barista" },
+];
+
+const GM_EMAIL = "jessica@kaleocoffeehouse.com";
+
+// All 127 items from the spreadsheet
+const INVENTORY = [
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Ollipop",
+    "frequency": "As Needed",
+    "stock": 13.0,
+    "needed": 6.0,
+    "reorderThreshold": 6.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Sweet Tea",
+    "frequency": "As Needed",
+    "stock": 18.0,
+    "needed": 6.0,
+    "reorderThreshold": 6.0,
+    "notes": "about 1 per day",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Juice (Adult Juice)",
+    "frequency": "As Needed",
+    "stock": 2.0,
+    "needed": 8.0,
+    "reorderThreshold": 6.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Kid's Juice",
+    "frequency": "As Needed",
+    "stock": 25.0,
+    "needed": 15.0,
+    "reorderThreshold": 10.0,
+    "notes": "sells in bulk packages of 40",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Orange Juice",
+    "frequency": "As Needed",
+    "stock": 11.0,
+    "needed": 6.0,
+    "reorderThreshold": 4.0,
+    "notes": "",
+    "lastUpdated": "2026-04-12"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Watermelon Juice",
+    "frequency": "As Needed",
+    "stock": 10.0,
+    "needed": 10.0,
+    "reorderThreshold": 4.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Bottled Water",
+    "frequency": "As Needed",
+    "stock": 22.0,
+    "needed": 10.0,
+    "reorderThreshold": 11.0,
+    "notes": "bulk water pack",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Glass Coca Cola",
+    "frequency": "As Needed",
+    "stock": 25.0,
+    "needed": 10.0,
+    "reorderThreshold": 10.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Grab-n-Go Fridge",
+    "name": "Glass Diet Coke",
+    "frequency": "As Needed",
+    "stock": 17.0,
+    "needed": 10.0,
+    "reorderThreshold": 10.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Whole Milk",
+    "frequency": "Daily",
+    "stock": 17.0,
+    "needed": 30.0,
+    "reorderThreshold": 8.0,
+    "notes": "35 gallons/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Oat Milk",
+    "frequency": "Daily",
+    "stock": 20.0,
+    "needed": 20.0,
+    "reorderThreshold": 11.0,
+    "notes": "24 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Almond Milk",
+    "frequency": "Daily",
+    "stock": 22.0,
+    "needed": 20.0,
+    "reorderThreshold": 10.0,
+    "notes": "12 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Coconut Milk",
+    "frequency": "Daily",
+    "stock": 9.0,
+    "needed": 6.0,
+    "reorderThreshold": 6.0,
+    "notes": "4 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Half-n-Half",
+    "frequency": "Daily",
+    "stock": 21.0,
+    "needed": 24.0,
+    "reorderThreshold": 11.0,
+    "notes": "5 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Heavy Cream",
+    "frequency": "Daily",
+    "stock": 16.0,
+    "needed": 7.0,
+    "reorderThreshold": 11.0,
+    "notes": "8 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Lemonade",
+    "frequency": "Daily",
+    "stock": 7.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Strawberry Lemonade",
+    "frequency": "Daily",
+    "stock": 0.5,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Apple Juice",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 2.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Vanilla Syrup",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "one full dispenser and one half/full mason jar",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Caramel Syrup",
+    "frequency": "Daily",
+    "stock": 2.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Lavender Syrup",
+    "frequency": "Daily",
+    "stock": 0.5,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "one full dispenser and one half/full mason jar",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Mocha Syrup",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "one full dispenser and one half/full mason jar",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Simple Syrup",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "one full dispenser and one half/full mason jar",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Strawberry Syrup",
+    "frequency": "Daily",
+    "stock": 0,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Sugar Free Syrup",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "one full dispenser and one half/full mason jar",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Maple Syrup",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 3.0,
+    "reorderThreshold": 0.75,
+    "notes": "one full maple jug and some in jar",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Mocha pom",
+    "frequency": "Daily",
+    "stock": 0.5,
+    "needed": 2.0,
+    "reorderThreshold": 0.75,
+    "notes": "",
+    "lastUpdated": "2026-04-12"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "blueberry",
+    "frequency": "Daily",
+    "stock": 0.3,
+    "needed": 2.0,
+    "reorderThreshold": 0.75,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "carrot cake",
+    "frequency": "Daily",
+    "stock": 1.3,
+    "needed": 2.0,
+    "reorderThreshold": 0.75,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Matcha Nude Powder",
+    "frequency": "Daily",
+    "stock": 2.3,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "$125 for 500 servings (bulk pricing)",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "DONA Chai",
+    "frequency": "Daily",
+    "stock": 1.7,
+    "needed": 4.0,
+    "reorderThreshold": 4.0,
+    "notes": "check front cabinet closest to bar for stock",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Tea - Winter Cabin",
+    "frequency": "Weekly",
+    "stock": 11.0,
+    "needed": 7.0,
+    "reorderThreshold": 11.0,
+    "notes": "10 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Tea - Sunday Morning",
+    "frequency": "Weekly",
+    "stock": 3.0,
+    "needed": 7.0,
+    "reorderThreshold": 11.0,
+    "notes": "10 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Tea - Cozy Fireplace",
+    "frequency": "Weekly",
+    "stock": 13.0,
+    "needed": 7.0,
+    "reorderThreshold": 11.0,
+    "notes": "10 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Tea - The Invitation",
+    "frequency": "Weekly",
+    "stock": 0,
+    "needed": 7.0,
+    "reorderThreshold": 11.0,
+    "notes": "10 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Tea - My Green Thumb",
+    "frequency": "Weekly",
+    "stock": 14.0,
+    "needed": 7.0,
+    "reorderThreshold": 11.0,
+    "notes": "10 boxes/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Coffee",
+    "name": "Domincan Roast",
+    "frequency": "Weekly",
+    "stock": 10.0,
+    "needed": 14.0,
+    "reorderThreshold": 4.0,
+    "notes": "14 every two weeks",
+    "lastUpdated": "2026-04-06"
+  },
+  {
+    "type": "Coffee",
+    "name": "Brazilian Roast",
+    "frequency": "Weekly",
+    "stock": 6.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "2 every two weeks",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Coffee",
+    "name": "Ethiopian Roast",
+    "frequency": "Weekly",
+    "stock": 16.0,
+    "needed": 3.0,
+    "reorderThreshold": 2.0,
+    "notes": "2 every two weeks",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Coffee",
+    "name": "Mexican Decaf Roast",
+    "frequency": "Weekly",
+    "stock": 8.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "4 every two weeks",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Cinnamon Rolls",
+    "frequency": "Daily",
+    "stock": 30.0,
+    "needed": 24.0,
+    "reorderThreshold": 1.0,
+    "notes": "24/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Lemon Blueberry Muffins",
+    "frequency": "Daily",
+    "stock": 10.0,
+    "needed": 24.0,
+    "reorderThreshold": 1.0,
+    "notes": "24/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "GF Chocolate Chip Cookies",
+    "frequency": "Daily",
+    "stock": 11.0,
+    "needed": 12.0,
+    "reorderThreshold": 1.0,
+    "notes": "daily / every other day drop offs",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "GF Raspberry Scone",
+    "frequency": "Daily",
+    "stock": 4.0,
+    "needed": 12.0,
+    "reorderThreshold": 1.0,
+    "notes": "12 get 12/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Choco Raspberry Scone",
+    "frequency": "Daily",
+    "stock": 2.0,
+    "needed": 12.0,
+    "reorderThreshold": 1.0,
+    "notes": "we get 12/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Chocolate Croissant",
+    "frequency": "Daily",
+    "stock": 10.0,
+    "needed": 12.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Coffee Cake",
+    "frequency": "Daily",
+    "stock": 22.0,
+    "needed": 12.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Strawberry Hand Pie",
+    "frequency": "Daily",
+    "stock": 7.0,
+    "needed": 24.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Bacon Cheddar Scones",
+    "frequency": "Daily",
+    "stock": 19.0,
+    "needed": 24.0,
+    "reorderThreshold": 1.0,
+    "notes": "24/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Vendor Goods",
+    "name": "Strawberry Danish",
+    "frequency": "Daily",
+    "stock": 6.0,
+    "needed": 12.0,
+    "reorderThreshold": 1.0,
+    "notes": "we get 12/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Sourdough Bread for Toast",
+    "frequency": "Daily",
+    "stock": 3.5,
+    "needed": 4.0,
+    "reorderThreshold": 2.0,
+    "notes": "4 loaves per week, delievered on mondays",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Gluten Free Bread",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 0.5,
+    "notes": "label as one whole loaf or .5 loaf",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Strawberries",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 3.0,
+    "reorderThreshold": 3.0,
+    "notes": "delievered monday and thursday if needed",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Blueberries",
+    "frequency": "Daily",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "delievered monday and thursday if needed",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Apples",
+    "frequency": "Daily",
+    "stock": 0.7,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "delievered monday and thursday if needed",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Lemons",
+    "frequency": "Daily",
+    "stock": 7.0,
+    "needed": 8.0,
+    "reorderThreshold": 4.0,
+    "notes": "1 bag/week = 8 lemons/week needed",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Red Onion",
+    "frequency": "Daily",
+    "stock": 0,
+    "needed": 0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": null
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Arugula",
+    "frequency": "Daily",
+    "stock": 2.0,
+    "needed": 3.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Tomato",
+    "frequency": "Daily",
+    "stock": 1.5,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "2/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Shaved Turkey",
+    "frequency": "Daily",
+    "stock": 3.0,
+    "needed": 4.0,
+    "reorderThreshold": 2.0,
+    "notes": "4 lbs per week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Smoked Salmon",
+    "frequency": "Daily",
+    "stock": 4.0,
+    "needed": 2.0,
+    "reorderThreshold": 1.5,
+    "notes": "2 packs per week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Ham",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 2.0,
+    "reorderThreshold": 1.5,
+    "notes": "2 packs per week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Greek Yogurt",
+    "frequency": "Daily",
+    "stock": 1.5,
+    "needed": 2.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Coconut Yogurt",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Purple Juice",
+    "frequency": "Daily",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Avocado Spread",
+    "frequency": "Daily",
+    "stock": 15.0,
+    "needed": 12.0,
+    "reorderThreshold": 8.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Chive Cream Cheese",
+    "frequency": "Daily",
+    "stock": 3.5,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "2 containers per week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Cream Cheese",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "2 containers per week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Sriracha Aioli",
+    "frequency": "Daily",
+    "stock": 6.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Cowboy Butter Seasoning",
+    "frequency": "Daily",
+    "stock": 2.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Everything Bagel Seasoning",
+    "frequency": "Daily",
+    "stock": 5.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Honey",
+    "frequency": "Daily",
+    "stock": 2.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "need 2 full honey containers a week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Hot Honey",
+    "frequency": "Daily",
+    "stock": 1.5,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "need 2 full honey containers a week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Chia Seed Blend",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "need 1 unopened bag/week",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Granola",
+    "frequency": "Daily",
+    "stock": 0.5,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Powdered Sugar",
+    "frequency": "Daily",
+    "stock": 11.0,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "need 1 full container a month",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "White Cane Sugar",
+    "frequency": "Daily",
+    "stock": 2.5,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Brown Sugar",
+    "frequency": "Daily",
+    "stock": 8.0,
+    "needed": 1.0,
+    "reorderThreshold": 0.5,
+    "notes": "1 large container half full/month. Mark as .25 full, .5 full, .75 full or 1 full",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Dark Brown Sugar",
+    "frequency": "Daily",
+    "stock": 0.5,
+    "needed": 4.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Stevia White Sugar",
+    "frequency": "Daily",
+    "stock": 3.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Stevia Brown Sugar",
+    "frequency": "Daily",
+    "stock": 5.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Cocoa Powder",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 4.0,
+    "reorderThreshold": 4.0,
+    "notes": "4 bags/month",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Vanila Bean Paste",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 0.5,
+    "notes": "Mark as .25 full, .5 full, .75 full or 1 full",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Ground Cinnamon",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 0.5,
+    "notes": "1 large container half full/month. Mark as .25 full, .5 full, .75 full or 1 full",
+    "lastUpdated": "2026-04-05"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Croissant Dough",
+    "frequency": "Daily",
+    "stock": 141.0,
+    "needed": 20.0,
+    "reorderThreshold": 15.0,
+    "notes": "1 open and 1 unopened",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Butter",
+    "frequency": "Daily",
+    "stock": 1.0,
+    "needed": 4.0,
+    "reorderThreshold": 2.0,
+    "notes": "check freezer, count sticks not packages",
+    "lastUpdated": "2026-04-15"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Frozen Strawberries",
+    "frequency": "As Needed",
+    "stock": 4.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Frozen Mango",
+    "frequency": "As Needed",
+    "stock": 1.5,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Frozen Banana",
+    "frequency": "As Needed",
+    "stock": 1.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Frozen Blueberries",
+    "frequency": "As Needed",
+    "stock": 2.5,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Frozen Kale",
+    "frequency": "As Needed",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "4 oz HOT cups",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container of cups. Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "8 oz HOT cups",
+    "frequency": "Weekly",
+    "stock": 2.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container of cups. Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "12 oz HOT cups",
+    "frequency": "Weekly",
+    "stock": 36.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container of cups. Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "16 oz HOT cups",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container of cups. Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Baby HOT lids (4oz)",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 10.0,
+    "notes": "",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Small HOT lids (8 oz)",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Large HOT lids (10-24 oz)",
+    "frequency": "Weekly",
+    "stock": 2.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "4 boxes - 4000 lids",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "8 oz ICED cups",
+    "frequency": "Weekly",
+    "stock": 0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "12 oz ICED cups",
+    "frequency": "Weekly",
+    "stock": 0.5,
+    "needed": 0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container of cups. Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "16 oz ICED cups",
+    "frequency": "Weekly",
+    "stock": 0.5,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container of cups. Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Large ICED lids (10-12 oz)",
+    "frequency": "Weekly",
+    "stock": 0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container of cups. Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Large Sleeves",
+    "frequency": "Weekly",
+    "stock": 0.5,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "count boxes like the .25, .5, .75, 1",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Small Sleeves",
+    "frequency": "Weekly",
+    "stock": 2.0,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "count boxes like the .25, .5, .75, 1",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Large To-Go Boxes",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 1.0,
+    "notes": "keep 1 storage container of - Mark as 0 when half full",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Small To-Go Boxes",
+    "frequency": "Weekly",
+    "stock": 3.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "keep 1 storage container - Mark as 0 when half full",
+    "lastUpdated": "2026-04-02"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Bags",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 1.0,
+    "reorderThreshold": 2,
+    "notes": "",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Straws",
+    "frequency": "Weekly",
+    "stock": 4.0,
+    "needed": 2.0,
+    "reorderThreshold": 2,
+    "notes": "",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Carry-Out Containers",
+    "name": "Napkins",
+    "frequency": "Weekly",
+    "stock": 6.0,
+    "needed": 6.0,
+    "reorderThreshold": 6.0,
+    "notes": "check in self serve station, need 6 sleeves/week",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Sanitation",
+    "name": "Cafiza Tablets",
+    "frequency": "Weekly",
+    "stock": 0.25,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Sanitation",
+    "name": "Cafiza Powder",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 3.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Sanitation",
+    "name": "Paper Towels",
+    "frequency": "Weekly",
+    "stock": 1.0,
+    "needed": 3.0,
+    "reorderThreshold": 3.0,
+    "notes": "need 3 weekly, check 1st bookcase and check dispseners",
+    "lastUpdated": "2026-04-13"
+  },
+  {
+    "type": "Sanitation",
+    "name": "Toilet Paper",
+    "frequency": "Weekly",
+    "stock": 11.0,
+    "needed": 4.0,
+    "reorderThreshold": 3.0,
+    "notes": "check for box in cleaning closet. need 4/week",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Sanitation",
+    "name": "Hand Soap",
+    "frequency": "Weekly",
+    "stock": 0,
+    "needed": 3.0,
+    "reorderThreshold": 3.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Misc",
+    "name": "RETAIL dominican beans",
+    "frequency": "As Needed",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "update as purchased",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Misc",
+    "name": "RETAIL decaf beans",
+    "frequency": "As Needed",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "update as purchased",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Misc",
+    "name": "RETAIL ethiopian beans",
+    "frequency": "As Needed",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "update as purchased",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Misc",
+    "name": "RETAIL brazilian beans",
+    "frequency": "As Needed",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "update as purchased",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Misc",
+    "name": "STICKERS for food labeling",
+    "frequency": "As Needed",
+    "stock": 2.0,
+    "needed": 1.0,
+    "reorderThreshold": 0.25,
+    "notes": "To be delivered 2/27",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Misc",
+    "name": "STICKERS for cups",
+    "frequency": "As Needed",
+    "stock": 0,
+    "needed": 2.0,
+    "reorderThreshold": 1.0,
+    "notes": "",
+    "lastUpdated": "2026-04-14"
+  },
+  {
+    "type": "Food Ingredients",
+    "name": "Protein Oats",
+    "frequency": "Daily",
+    "stock": 0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-03-11"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Mascarpone Cheese",
+    "frequency": "Daily",
+    "stock": 0,
+    "needed": 8.0,
+    "reorderThreshold": 2.0,
+    "notes": "** will be last one we get, seasonal ends 2/28",
+    "lastUpdated": "2026-02-26"
+  },
+  {
+    "type": "Syrup Ingredients",
+    "name": "Cherry",
+    "frequency": "Daily",
+    "stock": 4.0,
+    "needed": 4.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-02-18"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Tea - Unconditional Love",
+    "frequency": "Weekly",
+    "stock": 0,
+    "needed": 7.0,
+    "reorderThreshold": 11.0,
+    "notes": "10 boxes/week",
+    "lastUpdated": "2026-02-24"
+  },
+  {
+    "type": "Beverage Ingredients",
+    "name": "Tart Cherry Juice",
+    "frequency": "As Needed",
+    "stock": 2.0,
+    "needed": 1.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-02-26"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Frozen Cherries",
+    "frequency": "As Needed",
+    "stock": 5.0,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "",
+    "lastUpdated": "2026-02-19"
+  },
+  {
+    "type": "Frozen Foods",
+    "name": "Frozen Raspberries",
+    "frequency": "As Needed",
+    "stock": 0.25,
+    "needed": 2.0,
+    "reorderThreshold": 2.0,
+    "notes": "** will be the last one we get, seasonal ends 2/28",
+    "lastUpdated": "2026-02-21"
+  }
+];
+
+// ========== STATE ==========
+let currentUser = null;
+let pinCode = "";
+let changes = {};
+let activeFilter = "All";
+let activeTaskFilter = "all"; // "all", "overdue", "due-today"
+let editingItemIdx = null;
+let dashFilter = "all"; // "all", "out-of-stock", "order-now", "overdue", "due-today"
+
+// ========== LOGIN ==========
+function pinInput(digit) {
+  if (pinCode.length >= 4) return;
+  pinCode += digit;
+  updateDots();
+  if (pinCode.length === 4) {
+    setTimeout(tryLogin, 200);
+  }
+}
+function pinDelete() {
+  pinCode = pinCode.slice(0, -1);
+  updateDots();
+  document.getElementById("login-error").textContent = "";
+}
+function pinClear() {
+  pinCode = "";
+  updateDots();
+  document.getElementById("login-error").textContent = "";
+}
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById("dot-" + i);
+    dot.classList.toggle("filled", i < pinCode.length);
+    dot.classList.remove("error");
+  }
+}
+function tryLogin() {
+  const user = BARISTAS.find(b => b.pin === pinCode);
+  if (user) {
+    currentUser = user;
+    user.lastLogin = new Date().toISOString();
+    localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+    logActivity("logged in", "");
+    document.getElementById("login-screen").classList.add("hidden");
+    document.getElementById("app-screen").classList.remove("hidden");
+    document.getElementById("user-avatar").textContent = user.name[0];
+    document.getElementById("user-name").textContent = user.name;
+    document.getElementById("user-role").textContent = user.role;
+    changes = {};
+    renderDashboard();
+    renderTaskBanner();
+    renderFilters();
+    renderItems();
+    if (user.role !== "General Manager") {
+      document.querySelector('[data-tab="settings"]').classList.add("hidden");
+    } else {
+      document.querySelector('[data-tab="settings"]').classList.remove("hidden");
+      renderBaristaList();
+    }
+  } else {
+    document.getElementById("login-error").textContent = "Incorrect PIN";
+    for (let i = 0; i < 4; i++) {
+      document.getElementById("dot-" + i).classList.add("error");
+    }
+    setTimeout(() => { pinCode = ""; updateDots(); }, 600);
+  }
+}
+function logout() {
+  currentUser = null;
+  pinCode = "";
+  updateDots();
+  document.getElementById("app-screen").classList.add("hidden");
+  document.getElementById("login-screen").classList.remove("hidden");
+  document.getElementById("login-error").textContent = "";
+  switchTab("count");
+}
+
+// ========== TABS ==========
+function switchTab(tab) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  document.getElementById("tab-count").classList.toggle("hidden", tab !== "count");
+  document.getElementById("tab-dashboard").classList.toggle("hidden", tab !== "dashboard");
+  document.getElementById("tab-settings").classList.toggle("hidden", tab !== "settings");
+  if (tab === "dashboard") renderDashboard();
+  if (tab === "settings") renderBaristaList();
+}
+
+// ========== STATUS LOGIC ==========
+function getStatus(item, overrideStock) {
+  const stock = overrideStock !== undefined ? overrideStock : item.stock;
+  if (stock === 0) return "out-of-stock";
+  if (stock < item.reorderThreshold) return "order-now";
+  return "in-stock";
+}
+function statusLabel(s) {
+  if (s === "out-of-stock") return "Out of Stock";
+  if (s === "order-now") return "Order Now";
+  return "In Stock";
+}
+
+// ========== DUE STATUS LOGIC ==========
+function getDueStatus(item) {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const lastDate = item.lastUpdated ? new Date(item.lastUpdated + "T00:00:00") : null;
+  if (!lastDate) return "overdue";
+
+  const diffMs = now - lastDate;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (item.frequency === "Daily") {
+    if (diffDays >= 2) return "overdue";
+    if (diffDays >= 1) return "due-today";
+    return "up-to-date";
+  } else if (item.frequency === "Weekly") {
+    if (diffDays >= 10) return "overdue";
+    if (diffDays >= 7) return "due-today";
+    return "up-to-date";
+  } else { // As Needed
+    if (diffDays >= 14) return "overdue";
+    if (diffDays >= 7) return "due-today";
+    return "up-to-date";
+  }
+}
+
+function dueLabel(due) {
+  if (due === "overdue") return "Overdue";
+  if (due === "due-today") return "Due";
+  return "";
+}
+
+function getDueCounts() {
+  let overdue = 0, dueToday = 0;
+  INVENTORY.forEach(item => {
+    const d = getDueStatus(item);
+    if (d === "overdue") overdue++;
+    else if (d === "due-today") dueToday++;
+  });
+  return { overdue, dueToday };
+}
+
+// ========== TASK BANNER ==========
+function renderTaskBanner() {
+  const { overdue, dueToday } = getDueCounts();
+  const total = INVENTORY.length;
+  document.getElementById("task-banner").innerHTML = `
+    <button class="task-chip all-items ${activeTaskFilter === 'all' ? 'active' : ''}" onclick="setTaskFilter('all')">
+      All Items <span class="task-count">${total}</span>
+    </button>
+    <button class="task-chip overdue ${activeTaskFilter === 'overdue' ? 'active' : ''}" onclick="setTaskFilter('overdue')">
+      Overdue <span class="task-count">${overdue}</span>
+    </button>
+    <button class="task-chip due-today ${activeTaskFilter === 'due-today' ? 'active' : ''}" onclick="setTaskFilter('due-today')">
+      Due Now <span class="task-count">${dueToday}</span>
+    </button>
+  `;
+}
+
+function setTaskFilter(f) {
+  activeTaskFilter = f;
+  renderTaskBanner();
+  renderItems();
+}
+
+// ========== FILTERS ==========
+function renderFilters() {
+  const types = ["All", ...new Set(INVENTORY.map(i => i.type))];
+  const bar = document.getElementById("filter-bar");
+  bar.innerHTML = types.map(t => {
+    const cnt = t === "All" ? INVENTORY.length : INVENTORY.filter(i => i.type === t).length;
+    return `<button class="filter-chip ${t === activeFilter ? 'active' : ''}" onclick="setFilter('${t.replace(/'/g, "\\'")}')">${t}<span class="count">${cnt}</span></button>`;
+  }).join("");
+}
+function setFilter(f) {
+  activeFilter = f;
+  renderFilters();
+  renderItems();
+}
+
+// ========== RENDER ITEMS ==========
+function renderItems() {
+  let filtered = activeFilter === "All" ? [...INVENTORY] : INVENTORY.filter(i => i.type === activeFilter);
+
+  // Apply task filter
+  if (activeTaskFilter === "overdue") {
+    filtered = filtered.filter(i => getDueStatus(i) === "overdue");
+  } else if (activeTaskFilter === "due-today") {
+    filtered = filtered.filter(i => getDueStatus(i) === "due-today");
+  }
+
+  // Group by frequency priority: Daily first, then Weekly, then As Needed
+  const freqOrder = { "Daily": 1, "Weekly": 2, "As Needed": 3 };
+  const groups = {};
+  filtered.forEach((item, idx) => {
+    const gIdx = INVENTORY.indexOf(item);
+    const freq = item.frequency;
+    if (!groups[freq]) groups[freq] = [];
+    groups[freq].push({ ...item, globalIdx: gIdx });
+  });
+
+  const sortedKeys = Object.keys(groups).sort((a, b) => (freqOrder[a] || 99) - (freqOrder[b] || 99));
+
+  let html = "";
+  if (filtered.length === 0 && activeTaskFilter !== "all") {
+    html = `<div style="text-align:center; padding: 60px 20px; color: var(--gray-400);"><div style="font-size: 36px; margin-bottom: 12px;">&#10003;</div><div style="font-size: 16px; font-weight: 600;">All caught up!</div><div style="font-size: 14px; margin-top: 4px;">No ${activeTaskFilter === 'overdue' ? 'overdue' : 'due'} items right now.</div></div>`;
+  }
+
+  sortedKeys.forEach(freq => {
+    html += `<div class="section-header">${freq} Items (${groups[freq].length})</div>`;
+    groups[freq].forEach(item => {
+      const stock = changes[item.globalIdx] !== undefined ? changes[item.globalIdx] : item.stock;
+      const status = getStatus(item, stock);
+      const hasNotes = item.notes && item.notes.length > 0;
+      const isChanged = changes[item.globalIdx] !== undefined;
+      const due = getDueStatus(item);
+      const dueText = dueLabel(due);
+      const lastUp = item.lastUpdated ? timeAgo(item.lastUpdated) : "never";
+      html += `
+        <div class="item-card">
+          <div class="item-status ${status}"></div>
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-meta">
+              <span>${item.type}</span>
+              <span>${item.frequency}</span>
+              ${dueText ? `<span class="item-due ${due}">${dueText}</span>` : ""}
+              ${hasNotes ? `<span class="item-notes-indicator" onclick="showNotes(${item.globalIdx})">&#9432; Notes</span>` : ""}
+            </div>
+            <div style="font-size: 11px; color: var(--gray-400); margin-top: 1px;">Last counted: ${lastUp}${item.lastUpdatedBy ? ' by ' + item.lastUpdatedBy : ''}</div>
+          </div>
+          <div style="text-align: center;">
+            <input type="number" class="item-input ${isChanged ? 'changed' : ''}"
+              value="${stock}" step="0.25" min="0" inputmode="decimal"
+              onfocus="this.select()"
+              onchange="updateStock(${item.globalIdx}, this.value)">
+            <div class="item-target">order: ${item.needed}${item.usage ? ' &middot; ' + item.usage + '/wk' : ''}</div>
+          </div>
+        </div>`;
+    });
+  });
+
+  document.getElementById("item-list").innerHTML = html;
+  updateSubmitBar();
+}
+
+function timeAgo(dateStr) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const d = new Date(dateStr + "T00:00:00");
+  const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return "today";
+  if (diff === 1) return "yesterday";
+  if (diff < 7) return diff + " days ago";
+  if (diff < 14) return "1 week ago";
+  return Math.floor(diff / 7) + " weeks ago";
+}
+
+function updateStock(idx, val) {
+  const num = parseFloat(val) || 0;
+  if (num === INVENTORY[idx].stock) {
+    delete changes[idx];
+  } else {
+    changes[idx] = num;
+  }
+  renderItems();
+}
+
+function updateSubmitBar() {
+  const count = Object.keys(changes).length;
+  const bar = document.getElementById("submit-bar");
+  bar.classList.toggle("show", count > 0);
+  document.getElementById("changes-count").textContent = count + " changed";
+}
+
+// ========== SUBMIT ==========
+function submitCount() {
+  const alertItems = [];
+
+  const changedDetails = [];
+  Object.entries(changes).forEach(([idx, newStock]) => {
+    const item = INVENTORY[idx];
+    const oldStock = item.stock;
+    item.stock = newStock;
+    item.lastUpdated = new Date().toISOString().split("T")[0];
+    item.lastUpdatedBy = currentUser.name;
+    changedDetails.push(item.name + ": " + oldStock + " -> " + newStock);
+    const status = getStatus(item);
+    if (status !== "in-stock") {
+      alertItems.push({ name: item.name, type: item.type, stock: newStock, threshold: item.reorderThreshold, needed: item.needed, status: statusLabel(status) });
+    }
+  });
+
+  // Log activity
+  logActivity("submitted inventory count (" + changedDetails.length + " items)", changedDetails.slice(0, 8).join(", ") + (changedDetails.length > 8 ? " + " + (changedDetails.length - 8) + " more" : ""));
+
+  // Save inventory state
+  localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+
+  // Send email alert if there are items to reorder
+  if (alertItems.length > 0) {
+    sendAlertEmail(alertItems);
+  }
+
+  changes = {};
+  renderTaskBanner();
+  renderItems();
+  showToast("Count submitted! " + (alertItems.length > 0 ? alertItems.length + " alert(s) sent to GM." : "All items in stock."));
+}
+
+function sendAlertEmail(alertItems) {
+  const email = document.getElementById("gm-email") ? document.getElementById("gm-email").value : GM_EMAIL;
+
+  const outOfStock = alertItems.filter(i => i.status === "Out of Stock");
+  const orderNow = alertItems.filter(i => i.status === "Order Now");
+
+  let subject = `Kaleo Inventory Alert: ${alertItems.length} item(s) need attention`;
+  let body = `Inventory count submitted by ${currentUser.name} on ${new Date().toLocaleDateString()}\n\n`;
+
+  if (outOfStock.length > 0) {
+    body += `OUT OF STOCK (${outOfStock.length}):\n`;
+    outOfStock.forEach(i => body += `  - ${i.name} (${i.type}) — Stock: ${i.stock}, Order Qty: ${i.needed}\n`);
+    body += "\n";
+  }
+  if (orderNow.length > 0) {
+    body += `ORDER NOW (${orderNow.length}):\n`;
+    orderNow.forEach(i => body += `  - ${i.name} (${i.type}) — Stock: ${i.stock}, Reorder at: ${i.threshold}, Order Qty: ${i.needed}\n`);
+  }
+
+  // In production, this would call a backend API. For the prototype, we log it and show what would be sent.
+  console.log("=== EMAIL ALERT ===");
+  console.log("To:", email);
+  console.log("Subject:", subject);
+  console.log("Body:", body);
+
+  // Store the last alert for dashboard display
+  localStorage.setItem("kaleo_last_alert", JSON.stringify({
+    time: new Date().toISOString(),
+    to: email,
+    items: alertItems,
+    subject: subject,
+    body: body
+  }));
+}
+
+// ========== NOTES ==========
+function showNotes(idx) {
+  const item = INVENTORY[idx];
+  document.getElementById("notes-title").textContent = item.name;
+  document.getElementById("notes-body").textContent = item.notes;
+  document.getElementById("notes-overlay").classList.add("show");
+}
+function closeNotes(e) {
+  if (e.target === document.getElementById("notes-overlay")) closeNotesBtn();
+}
+function closeNotesBtn() {
+  document.getElementById("notes-overlay").classList.remove("show");
+}
+
+// ========== DASHBOARD ==========
+function setDashFilter(filter) {
+  dashFilter = dashFilter === filter ? "all" : filter;
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const now = new Date();
+  document.getElementById("dash-date").textContent = now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  let outCount = 0, orderCount = 0, inCount = 0;
+  const outItems = [], orderItems = [];
+
+  INVENTORY.forEach(item => {
+    const s = getStatus(item);
+    if (s === "out-of-stock") { outCount++; outItems.push(item); }
+    else if (s === "order-now") { orderCount++; orderItems.push(item); }
+    else { inCount++; }
+  });
+
+  const { overdue, dueToday } = getDueCounts();
+
+  document.getElementById("stat-grid").innerHTML = `
+    <div class="stat-card red${dashFilter === 'out-of-stock' ? ' active' : ''}" onclick="setDashFilter('out-of-stock')"><div class="stat-num">${outCount}</div><div class="stat-label">Out of Stock</div></div>
+    <div class="stat-card yellow${dashFilter === 'order-now' ? ' active' : ''}" onclick="setDashFilter('order-now')"><div class="stat-num">${orderCount}</div><div class="stat-label">Order Now</div></div>
+    <div class="stat-card${dashFilter === 'overdue' ? ' active' : ''}" style="border-left: 3px solid var(--red);"><div class="stat-num" style="color:var(--red)">${overdue}</div><div class="stat-label">Overdue Counts</div></div>
+    <div class="stat-card${dashFilter === 'due-today' ? ' active' : ''}" style="border-left: 3px solid var(--yellow);"><div class="stat-num" style="color:var(--yellow)">${dueToday}</div><div class="stat-label">Due Today</div></div>
+  `;
+
+  // Add click handlers for the last two cards (which use inline styles)
+  const cards = document.querySelectorAll("#stat-grid .stat-card");
+  cards[2].onclick = function() { setDashFilter("overdue"); };
+  cards[3].onclick = function() { setDashFilter("due-today"); };
+
+  const freqSort = { "Daily": 1, "Weekly": 2, "As Needed": 3 };
+  let alertHtml = "";
+
+  // Determine which sections to show based on filter
+  const showOverdue = dashFilter === "all" || dashFilter === "overdue";
+  const showDueToday = dashFilter === "all" || dashFilter === "due-today";
+  const showOut = dashFilter === "all" || dashFilter === "out-of-stock";
+  const showOrder = dashFilter === "all" || dashFilter === "order-now";
+
+  // Overdue items section
+  if (showOverdue) {
+    const overdueItems = INVENTORY.filter(i => getDueStatus(i) === "overdue").sort((a, b) => (freqSort[a.frequency] || 99) - (freqSort[b.frequency] || 99));
+    if (overdueItems.length > 0) {
+      alertHtml += '<div class="alert-section-title">Overdue Counts (' + overdueItems.length + ')</div>';
+      overdueItems.slice(0, 20).forEach(item => {
+        const lastUp = item.lastUpdated ? timeAgo(item.lastUpdated) : "never counted";
+        alertHtml += '<div class="alert-item" style="border-left-color: var(--gray-400);"><div style="flex:1"><div class="alert-name">' + item.name + '</div><div class="alert-detail">' + item.type + '</div></div><div style="text-align:right; min-width: 100px;"><div style="font-weight:600; font-size:13px; color:var(--red);">' + lastUp + '</div><div class="alert-detail">' + item.frequency + ' check</div></div></div>';
+      });
+      if (overdueItems.length > 20) {
+        alertHtml += '<div style="text-align:center; padding: 8px; font-size: 13px; color: var(--gray-400);">+ ' + (overdueItems.length - 20) + ' more overdue items</div>';
+      }
+    }
+  }
+
+  // Due Today items section
+  if (showDueToday) {
+    const dueTodayItems = INVENTORY.filter(i => getDueStatus(i) === "due-today").sort((a, b) => (freqSort[a.frequency] || 99) - (freqSort[b.frequency] || 99));
+    if (dueTodayItems.length > 0) {
+      alertHtml += '<div class="alert-section-title">Due Today (' + dueTodayItems.length + ')</div>';
+      dueTodayItems.slice(0, 20).forEach(item => {
+        const lastUp = item.lastUpdated ? timeAgo(item.lastUpdated) : "never counted";
+        alertHtml += '<div class="alert-item" style="border-left-color: var(--yellow);"><div style="flex:1"><div class="alert-name">' + item.name + '</div><div class="alert-detail">' + item.type + '</div></div><div style="text-align:right; min-width: 100px;"><div style="font-weight:600; font-size:13px; color:var(--yellow);">' + lastUp + '</div><div class="alert-detail">' + item.frequency + ' check</div></div></div>';
+      });
+    }
+  }
+
+  outItems.sort((a, b) => (freqSort[a.frequency] || 99) - (freqSort[b.frequency] || 99));
+  orderItems.sort((a, b) => (freqSort[a.frequency] || 99) - (freqSort[b.frequency] || 99));
+
+  if (showOut && outItems.length > 0) {
+    alertHtml += '<div class="alert-section-title">Out of Stock (' + outItems.length + ')</div>';
+    outItems.forEach(item => {
+      alertHtml += '<div class="alert-item"><div style="flex:1"><div class="alert-name">' + item.name + '</div><div class="alert-detail">' + item.type + '</div></div><div style="text-align:right; min-width: 80px;"><div class="alert-stock" style="color:var(--red)">0</div><div class="alert-detail">order: ' + item.needed + '</div></div></div>';
+    });
+  }
+
+  if (showOrder && orderItems.length > 0) {
+    alertHtml += '<div class="alert-section-title">Order Now (' + orderItems.length + ')</div>';
+    orderItems.forEach(item => {
+      alertHtml += '<div class="alert-item warning"><div style="flex:1"><div class="alert-name">' + item.name + '</div><div class="alert-detail">' + item.type + '</div></div><div style="text-align:right; min-width: 80px;"><div class="alert-stock" style="color:var(--yellow)">' + item.stock + '</div><div class="alert-detail">order: ' + item.needed + '</div></div></div>';
+    });
+  }
+
+  // Show last alert info (always visible)
+  const lastAlert = JSON.parse(localStorage.getItem("kaleo_last_alert") || "null");
+  if (lastAlert) {
+    const alertTime = new Date(lastAlert.time);
+    alertHtml += '<div class="alert-section-title">Last Email Alert</div>';
+    alertHtml += '<div class="alert-item" style="border-left-color: var(--brand); flex-direction: column; align-items: flex-start; gap: 4px;"><div style="font-weight: 600; font-size: 14px;">Sent to ' + lastAlert.to + '</div><div style="font-size: 12px; color: var(--gray-500);">' + alertTime.toLocaleString() + ' — ' + lastAlert.items.length + ' items flagged</div></div>';
+  }
+
+  if (alertHtml === "") {
+    alertHtml = '<div style="text-align:center; padding: 32px 20px; color: var(--gray-400); font-size: 14px;">No items in this category</div>';
+  }
+
+  document.getElementById("alert-list").innerHTML = alertHtml;
+}
+
+// ========== ACTIVITY LOG ==========
+function logActivity(action, details) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    user: currentUser ? currentUser.name : "System",
+    action: action,
+    details: details
+  };
+  let log = JSON.parse(localStorage.getItem("kaleo_activity_log") || "[]");
+  log.unshift(entry);
+  if (log.length > 500) log = log.slice(0, 500);
+  localStorage.setItem("kaleo_activity_log", JSON.stringify(log));
+}
+
+function getActivityLog() {
+  return JSON.parse(localStorage.getItem("kaleo_activity_log") || "[]");
+}
+
+function getUserActivity(userName, limit) {
+  return getActivityLog().filter(e => e.user === userName).slice(0, limit || 10);
+}
+
+function formatLogTime(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+function renderActivityLog() {
+  const el = document.getElementById("activity-log");
+  if (!el) return;
+  const log = getActivityLog().slice(0, 50);
+  if (log.length === 0) {
+    el.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--gray-400); font-size: 14px;">No activity yet. Logs will appear here as your team uses the app.</div>';
+    return;
+  }
+  el.innerHTML = log.map(e => `
+    <div class="log-entry">
+      <div class="log-time">${formatLogTime(e.timestamp)}</div>
+      <div class="log-body"><span class="log-user">${e.user}</span> ${e.action}${e.details ? '<br><span style="color:var(--gray-400)">' + e.details + '</span>' : ''}</div>
+    </div>
+  `).join("");
+}
+
+// ========== SETTINGS — TEAM ==========
+function renderBaristaList() {
+  renderTeamList();
+  renderItemMgmt();
+  renderActivityLog();
+}
+
+function renderTeamList() {
+  const el = document.getElementById("team-list");
+  if (!el) return;
+  const freqOrder = { "Daily": 1, "Weekly": 2, "As Needed": 3 };
+  el.innerHTML = BARISTAS.map((b, i) => {
+    const lastLogin = b.lastLogin ? formatLogTime(b.lastLogin) : "Never";
+    return `
+    <div class="team-card" onclick="openProfile(${i})">
+      <div class="team-avatar">${b.name[0]}</div>
+      <div class="team-info">
+        <div class="team-name">${b.name}</div>
+        <div class="team-meta">${b.role} &middot; Last login: ${lastLogin}</div>
+      </div>
+      <div class="team-arrow">&rsaquo;</div>
+    </div>`;
+  }).join("");
+}
+
+let editingProfileIdx = null;
+
+function openProfile(idx) {
+  editingProfileIdx = idx;
+  const b = BARISTAS[idx];
+  document.getElementById("profile-title").textContent = b.name;
+  document.getElementById("profile-name").value = b.name;
+  document.getElementById("profile-pin").value = b.pin;
+  document.getElementById("profile-role").value = b.role;
+  document.getElementById("profile-last-login").textContent = b.lastLogin ? formatLogTime(b.lastLogin) : "Never";
+
+  // Render user activity
+  const activity = getUserActivity(b.name, 10);
+  const actEl = document.getElementById("profile-activity");
+  if (activity.length === 0) {
+    actEl.innerHTML = '<div style="padding: 12px 0; color: var(--gray-400); font-size: 13px;">No recent activity.</div>';
+  } else {
+    actEl.innerHTML = activity.map(e => `
+      <div class="activity-item">
+        <div class="activity-dot"></div>
+        <div>
+          <div class="activity-text">${e.action}${e.details ? ' — ' + e.details : ''}</div>
+          <div class="activity-time">${formatLogTime(e.timestamp)}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("profile-overlay").classList.add("show");
+}
+
+function closeProfile() {
+  document.getElementById("profile-overlay").classList.remove("show");
+  editingProfileIdx = null;
+  renderTeamList();
+}
+
+function saveProfile() {
+  if (editingProfileIdx === null) return;
+  const b = BARISTAS[editingProfileIdx];
+  const newName = document.getElementById("profile-name").value.trim();
+  const newPin = document.getElementById("profile-pin").value.trim();
+  const newRole = document.getElementById("profile-role").value;
+
+  if (!newName) { showToast("Name is required"); return; }
+  if (!newPin || newPin.length !== 4 || isNaN(newPin)) { showToast("PIN must be 4 digits"); return; }
+
+  const oldName = b.name;
+  b.name = newName;
+  b.pin = newPin;
+  b.role = newRole;
+  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+  logActivity("updated profile for " + newName, oldName !== newName ? "Renamed from " + oldName : "");
+  document.getElementById("profile-title").textContent = newName;
+  showToast("Profile saved!");
+}
+
+function deleteProfile() {
+  if (editingProfileIdx === null) return;
+  const b = BARISTAS[editingProfileIdx];
+  if (!confirm("Remove " + b.name + " from the team?")) return;
+  logActivity("removed " + b.name + " from the team", "");
+  BARISTAS.splice(editingProfileIdx, 1);
+  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+  closeProfile();
+  showToast("Team member removed");
+}
+
+function addBarista() {
+  const name = prompt("Team member name:");
+  if (!name || !name.trim()) return;
+  const pin = prompt("4-digit PIN:");
+  if (!pin || pin.length !== 4 || isNaN(pin)) { showToast("PIN must be exactly 4 digits"); return; }
+  const role = prompt("Role (Barista or General Manager):", "Barista");
+  BARISTAS.push({ name: name.trim(), pin, role: role || "Barista", lastLogin: null });
+  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+  logActivity("added " + name.trim() + " to the team", "");
+  renderTeamList();
+  showToast(name.trim() + " added!");
+}
+
+function saveSettings() {
+  const email = document.getElementById("gm-email").value;
+  const notify = document.getElementById("notify-setting").value;
+  localStorage.setItem("kaleo_settings", JSON.stringify({ email, notify }));
+  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+  logActivity("updated notification settings", "Email: " + email + ", Mode: " + notify);
+  showToast("Settings saved!");
+}
+
+// ========== ITEM MANAGEMENT ==========
+function renderItemMgmt() {
+  const el = document.getElementById("item-mgmt-list");
+  if (!el) return;
+  const searchEl = document.getElementById("item-mgmt-search");
+  const query = searchEl ? searchEl.value.toLowerCase().trim() : "";
+  const freqOrder = { "Daily": 1, "Weekly": 2, "As Needed": 3 };
+
+  let items = INVENTORY.map((item, idx) => ({ ...item, idx }));
+  if (query) {
+    items = items.filter(i => i.name.toLowerCase().includes(query) || i.type.toLowerCase().includes(query));
+  }
+  items.sort((a, b) => (freqOrder[a.frequency] || 99) - (freqOrder[b.frequency] || 99) || a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
+
+  el.innerHTML = items.map(item => {
+    const status = getStatus(item);
+    return `
+    <div class="item-mgmt-row" onclick="openItemEdit(${item.idx})">
+      <div class="item-mgmt-dot" style="background: var(--${status === 'in-stock' ? 'green' : status === 'order-now' ? 'yellow' : 'red'})"></div>
+      <div class="item-mgmt-name">${item.name}<span class="item-mgmt-freq">${item.frequency}</span></div>
+      <div class="item-mgmt-detail">stock: ${item.stock}<br>order: ${item.needed} &middot; reorder@${item.reorderThreshold}${item.usage ? '<br>' + item.usage + '/wk' : ''}${item.leadTime ? ' &middot; ' + item.leadTime : ''}</div>
+    </div>`;
+  }).join("");
+}
+
+function openItemEdit(idx) {
+  editingItemIdx = idx;
+  const item = INVENTORY[idx];
+  document.getElementById("edit-name").value = item.name;
+  document.getElementById("edit-threshold").value = item.reorderThreshold;
+  document.getElementById("edit-needed").value = item.needed;
+  document.getElementById("edit-leadtime").value = item.leadTime || "";
+  document.getElementById("edit-usage").value = item.usage || "";
+  document.getElementById("edit-notes").value = item.notes;
+  document.getElementById("editor-overlay").classList.add("show");
+}
+
+function saveItemEdit() {
+  if (editingItemIdx === null) return;
+  const item = INVENTORY[editingItemIdx];
+  const changes = [];
+  const newName = document.getElementById("edit-name").value;
+  const newThreshold = parseFloat(document.getElementById("edit-threshold").value);
+  const newNeeded = parseFloat(document.getElementById("edit-needed").value);
+  const newLeadTime = document.getElementById("edit-leadtime").value.trim();
+  const newUsage = document.getElementById("edit-usage").value ? parseFloat(document.getElementById("edit-usage").value) : null;
+  const newNotes = document.getElementById("edit-notes").value;
+  if (newName !== item.name) changes.push("name: " + item.name + " -> " + newName);
+  if (newThreshold !== item.reorderThreshold) changes.push("threshold: " + item.reorderThreshold + " -> " + newThreshold);
+  if (newNeeded !== item.needed) changes.push("order qty: " + item.needed + " -> " + newNeeded);
+  if (newLeadTime !== (item.leadTime || "")) changes.push("lead time: " + (item.leadTime || "none") + " -> " + (newLeadTime || "none"));
+  if (newUsage !== (item.usage || null)) changes.push("usage/wk: " + (item.usage || "none") + " -> " + (newUsage || "none"));
+  if (newNotes !== item.notes) changes.push("notes updated");
+
+  item.name = newName;
+  item.reorderThreshold = newThreshold || item.reorderThreshold;
+  item.needed = newNeeded || item.needed;
+  item.leadTime = newLeadTime;
+  item.usage = newUsage;
+  item.notes = newNotes;
+  localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+  if (changes.length > 0) logActivity("edited item " + item.name, changes.join(", "));
+  closeEditorBtn();
+  renderItems();
+  renderItemMgmt();
+  showToast("Item updated!");
+}
+
+function closeEditor(e) {
+  if (e.target === document.getElementById("editor-overlay")) closeEditorBtn();
+}
+function closeEditorBtn() {
+  document.getElementById("editor-overlay").classList.remove("show");
+  editingItemIdx = null;
+}
+
+// ========== TOAST ==========
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ========== INIT ==========
+function init() {
+  // Load saved inventory if available
+  const saved = localStorage.getItem("kaleo_inventory");
+  if (saved) {
+    const savedData = JSON.parse(saved);
+    savedData.forEach((item, i) => {
+      if (i < INVENTORY.length) {
+        INVENTORY[i].stock = item.stock;
+        if (item.lastUpdated) INVENTORY[i].lastUpdated = item.lastUpdated;
+        if (item.lastUpdatedBy) INVENTORY[i].lastUpdatedBy = item.lastUpdatedBy;
+        if (item.reorderThreshold !== undefined) INVENTORY[i].reorderThreshold = item.reorderThreshold;
+        if (item.needed !== undefined) INVENTORY[i].needed = item.needed;
+        if (item.notes !== undefined) INVENTORY[i].notes = item.notes;
+        if (item.leadTime !== undefined) INVENTORY[i].leadTime = item.leadTime;
+        if (item.usage !== undefined) INVENTORY[i].usage = item.usage;
+      }
+    });
+  }
+
+  // Load saved settings
+  const settings = JSON.parse(localStorage.getItem("kaleo_settings") || "null");
+  if (settings) {
+    // Will apply when settings tab opens
+  }
+
+  // Load saved baristas
+  const savedBaristas = localStorage.getItem("kaleo_baristas");
+  if (savedBaristas) {
+    const parsed = JSON.parse(savedBaristas);
+    BARISTAS.length = 0;
+    parsed.forEach(b => BARISTAS.push(b));
+  }
+}
+
+init();
+</script>
+</body>
+</html>
