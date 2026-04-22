@@ -1784,6 +1784,8 @@ function tryLogin() {
     user.lastLogin = new Date().toISOString();
     fbSave("baristas", BARISTAS);
     logActivity("logged in", "");
+    // Save session (15 min expiry)
+    sessionStorage.setItem("kaleo_session", JSON.stringify({ pin: user.pin, expires: Date.now() + 15 * 60 * 1000 }));
     document.getElementById("login-screen").classList.add("hidden");
     document.getElementById("app-screen").classList.remove("hidden");
     document.getElementById("user-avatar").textContent = user.name[0];
@@ -1821,11 +1823,12 @@ function tryLogin() {
 function logout() {
   currentUser = null;
   pinCode = "";
+  sessionStorage.removeItem("kaleo_session");
   updateDots();
   document.getElementById("app-screen").classList.add("hidden");
   document.getElementById("login-screen").classList.remove("hidden");
   document.getElementById("login-error").textContent = "";
-  switchTab("count");
+  switchTab("dashboard");
 }
 
 // ========== TABS ==========
@@ -2640,6 +2643,42 @@ async function init() {
 
     // Set up real-time listeners for cross-device sync
     setupRealtimeListeners();
+
+    // Restore session if still valid (15 min)
+    const session = JSON.parse(sessionStorage.getItem("kaleo_session") || "null");
+    if (session && session.expires > Date.now()) {
+      const user = BARISTAS.find(b => b.pin === session.pin);
+      if (user) {
+        currentUser = user;
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("app-screen").classList.remove("hidden");
+        document.getElementById("user-avatar").textContent = user.name[0];
+        document.getElementById("user-name").textContent = user.name;
+        document.getElementById("user-role").textContent = user.role;
+        renderDashboard();
+        renderTaskBanner();
+        renderFilters();
+        renderItems();
+        if (user.role === "General Manager") {
+          document.querySelector('[data-tab="settings"]').classList.remove("hidden");
+          document.getElementById("gm-only-settings").classList.remove("hidden");
+          document.getElementById("lead-settings").classList.remove("hidden");
+          document.getElementById("add-item-btn").style.display = "";
+          renderBaristaList();
+        } else if (user.role === "Inventory Lead") {
+          document.querySelector('[data-tab="settings"]').classList.remove("hidden");
+          document.getElementById("gm-only-settings").classList.add("hidden");
+          document.getElementById("lead-settings").classList.remove("hidden");
+          document.getElementById("add-item-btn").style.display = "";
+          renderItemMgmt();
+          renderActivityLog();
+        } else {
+          document.querySelector('[data-tab="settings"]').classList.add("hidden");
+        }
+        // Refresh the session timer
+        sessionStorage.setItem("kaleo_session", JSON.stringify({ pin: user.pin, expires: Date.now() + 15 * 60 * 1000 }));
+      }
+    }
 
   } catch (err) {
     console.error("Firebase init error, falling back to defaults:", err);
