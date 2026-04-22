@@ -291,41 +291,46 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
   <!-- SETTINGS TAB -->
   <div id="tab-settings" class="hidden">
     <div class="settings-section">
-      <h2>Notification Settings</h2>
-      <div class="email-info">
-        <p>Reorder alerts will be emailed to the GM whenever a barista submits a count that includes items at or below reorder level.</p>
-      </div>
-      <div class="settings-card">
-        <label>GM Email Address</label>
-        <input type="email" id="gm-email" value="jessica@kaleocoffeehouse.com">
-      </div>
-      <div class="settings-card">
-        <label>Email notifications</label>
-        <select id="notify-setting">
-          <option value="always">Every count with alerts</option>
-          <option value="daily">Daily digest (end of day)</option>
-          <option value="off">Disabled</option>
-        </select>
+      <div id="gm-only-settings">
+        <h2>Notification Settings</h2>
+        <div class="email-info">
+          <p>Reorder alerts will be emailed to the GM whenever a barista submits a count that includes items at or below reorder level.</p>
+        </div>
+        <div class="settings-card">
+          <label>GM Email Address</label>
+          <input type="email" id="gm-email" value="jessica@kaleocoffeehouse.com">
+        </div>
+        <div class="settings-card">
+          <label>Email notifications</label>
+          <select id="notify-setting">
+            <option value="always">Every count with alerts</option>
+            <option value="daily">Daily digest (end of day)</option>
+            <option value="off">Disabled</option>
+          </select>
+        </div>
+
+        <h2 style="margin-top: 24px;">Team</h2>
+        <div class="settings-card">
+          <div id="team-list"></div>
+          <button class="add-btn" onclick="addBarista()">+ Add Team Member</button>
+        </div>
+
+        <button class="save-settings-btn" onclick="saveSettings()">Save Settings</button>
       </div>
 
-      <h2 style="margin-top: 24px;">Team</h2>
-      <div class="settings-card">
-        <div id="team-list"></div>
-        <button class="add-btn" onclick="addBarista()">+ Add Team Member</button>
-      </div>
+      <div id="lead-settings">
+        <h2 style="margin-top: 24px;">Item Management</h2>
+        <div class="settings-card">
+          <input type="text" class="item-mgmt-search" id="item-mgmt-search" placeholder="Search items..." oninput="renderItemMgmt()">
+          <button class="add-btn" id="add-item-btn" onclick="addNewItem()" style="margin-bottom: 12px;">+ Add Item</button>
+          <div class="item-mgmt-list" id="item-mgmt-list"></div>
+        </div>
 
-      <h2 style="margin-top: 24px;">Item Management</h2>
-      <div class="settings-card">
-        <input type="text" class="item-mgmt-search" id="item-mgmt-search" placeholder="Search items..." oninput="renderItemMgmt()">
-        <div class="item-mgmt-list" id="item-mgmt-list"></div>
+        <h2 style="margin-top: 24px;">Activity Log</h2>
+        <div class="settings-card" style="max-height: 400px; overflow-y: auto;">
+          <div id="activity-log"></div>
+        </div>
       </div>
-
-      <h2 style="margin-top: 24px;">Activity Log</h2>
-      <div class="settings-card" style="max-height: 400px; overflow-y: auto;">
-        <div id="activity-log"></div>
-      </div>
-
-      <button class="save-settings-btn" onclick="saveSettings()">Save Settings</button>
     </div>
   </div>
 
@@ -348,6 +353,7 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
         <label>Role</label>
         <select id="profile-role">
           <option value="Barista">Barista</option>
+          <option value="Inventory Lead">Inventory Lead</option>
           <option value="General Manager">General Manager</option>
         </select>
       </div>
@@ -378,10 +384,33 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
 <!-- Item Editor Modal -->
 <div class="notes-overlay" id="editor-overlay" onclick="closeEditor(event)">
   <div class="notes-popup" style="max-height: 80vh; overflow-y: auto;">
-    <h3>Edit Item</h3>
+    <h3 id="editor-title">Edit Item</h3>
     <div style="margin-top: 12px;">
       <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Item Name</label>
       <input id="edit-name" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 12px;">
+      <div id="edit-category-wrap" style="display:none;">
+        <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Category</label>
+        <select id="edit-category" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 12px;">
+          <option value="Beverage Ingredients">Beverage Ingredients</option>
+          <option value="Food Ingredients">Food Ingredients</option>
+          <option value="Carry-Out Containers">Carry-Out Containers</option>
+          <option value="Vendor Goods">Vendor Goods</option>
+          <option value="Syrup Ingredients">Syrup Ingredients</option>
+          <option value="Grab-n-Go Fridge">Grab-n-Go Fridge</option>
+          <option value="Frozen Foods">Frozen Foods</option>
+          <option value="Misc">Misc</option>
+          <option value="Sanitation">Sanitation</option>
+          <option value="Coffee">Coffee</option>
+        </select>
+      </div>
+      <div id="edit-frequency-wrap" style="display:none;">
+        <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Frequency</label>
+        <select id="edit-frequency" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 12px;">
+          <option value="Daily">Daily</option>
+          <option value="Weekly">Weekly</option>
+          <option value="As Needed">As Needed</option>
+        </select>
+      </div>
       <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Reorder Threshold</label>
       <input id="edit-threshold" type="number" step="0.25" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; margin-bottom: 12px;">
       <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Reorder Quantity</label>
@@ -395,7 +424,8 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
       <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Notes / Instructions</label>
       <textarea id="edit-notes" rows="3" style="width:100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); font-size: 15px; resize: vertical;"></textarea>
     </div>
-    <button class="close-btn" style="background: var(--brand); color: #fff; margin-top: 12px;" onclick="saveItemEdit()">Save Changes</button>
+    <button class="close-btn" id="editor-save-btn" style="background: var(--brand); color: #fff; margin-top: 12px;" onclick="saveItemEdit()">Save Changes</button>
+    <button class="close-btn" id="editor-delete-btn" style="background: none; color: var(--terra); border: 1px solid var(--terra); margin-top: 8px; font-weight: 600;" onclick="deleteItem()">Delete Item</button>
     <button class="close-btn" onclick="closeEditorBtn()">Cancel</button>
   </div>
 </div>
@@ -412,7 +442,7 @@ const BARISTAS = [
 const GM_EMAIL = "jessica@kaleocoffeehouse.com";
 
 // All 127 items from the spreadsheet
-const INVENTORY = [
+let INVENTORY = [
   {
     "type": "Grab-n-Go Fridge",
     "name": "Ollipop",
@@ -1737,11 +1767,21 @@ function tryLogin() {
     renderTaskBanner();
     renderFilters();
     renderItems();
-    if (user.role !== "General Manager") {
-      document.querySelector('[data-tab="settings"]').classList.add("hidden");
-    } else {
+    if (user.role === "General Manager") {
       document.querySelector('[data-tab="settings"]').classList.remove("hidden");
+      document.getElementById("gm-only-settings").classList.remove("hidden");
+      document.getElementById("lead-settings").classList.remove("hidden");
+      document.getElementById("add-item-btn").style.display = "";
       renderBaristaList();
+    } else if (user.role === "Inventory Lead") {
+      document.querySelector('[data-tab="settings"]').classList.remove("hidden");
+      document.getElementById("gm-only-settings").classList.add("hidden");
+      document.getElementById("lead-settings").classList.remove("hidden");
+      document.getElementById("add-item-btn").style.display = "";
+      renderItemMgmt();
+      renderActivityLog();
+    } else {
+      document.querySelector('[data-tab="settings"]').classList.add("hidden");
     }
   } else {
     document.getElementById("login-error").textContent = "Incorrect PIN";
@@ -2244,6 +2284,9 @@ function openProfile(idx) {
     `).join("");
   }
 
+  // Reset buttons for edit mode
+  document.querySelector(".profile-delete").style.display = "";
+  document.querySelector(".profile-save").textContent = "Save Changes";
   document.getElementById("profile-overlay").classList.add("show");
 }
 
@@ -2255,7 +2298,6 @@ function closeProfile() {
 
 function saveProfile() {
   if (editingProfileIdx === null) return;
-  const b = BARISTAS[editingProfileIdx];
   const newName = document.getElementById("profile-name").value.trim();
   const newPin = document.getElementById("profile-pin").value.trim();
   const newRole = document.getElementById("profile-role").value;
@@ -2263,14 +2305,31 @@ function saveProfile() {
   if (!newName) { showToast("Name is required"); return; }
   if (!newPin || newPin.length !== 4 || isNaN(newPin)) { showToast("PIN must be 4 digits"); return; }
 
-  const oldName = b.name;
-  b.name = newName;
-  b.pin = newPin;
-  b.role = newRole;
-  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
-  logActivity("updated profile for " + newName, oldName !== newName ? "Renamed from " + oldName : "");
-  document.getElementById("profile-title").textContent = newName;
-  showToast("Profile saved!");
+  // Check for duplicate PIN
+  const pinConflict = BARISTAS.find((b, i) => b.pin === newPin && i !== editingProfileIdx);
+  if (pinConflict) { showToast("That PIN is already used by " + pinConflict.name); return; }
+
+  if (editingProfileIdx === -1) {
+    // Adding new team member
+    BARISTAS.push({ name: newName, pin: newPin, role: newRole, lastLogin: null });
+    localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+    logActivity("added " + newName + " to the team", "");
+    closeProfile();
+    renderTeamList();
+    showToast(newName + " added!");
+  } else {
+    // Editing existing team member
+    const b = BARISTAS[editingProfileIdx];
+    const oldName = b.name;
+    b.name = newName;
+    b.pin = newPin;
+    b.role = newRole;
+    localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+    logActivity("updated profile for " + newName, oldName !== newName ? "Renamed from " + oldName : "");
+    document.getElementById("profile-title").textContent = newName;
+    renderTeamList();
+    showToast("Profile saved!");
+  }
 }
 
 function deleteProfile() {
@@ -2285,16 +2344,18 @@ function deleteProfile() {
 }
 
 function addBarista() {
-  const name = prompt("Team member name:");
-  if (!name || !name.trim()) return;
-  const pin = prompt("4-digit PIN:");
-  if (!pin || pin.length !== 4 || isNaN(pin)) { showToast("PIN must be exactly 4 digits"); return; }
-  const role = prompt("Role (Barista or General Manager):", "Barista");
-  BARISTAS.push({ name: name.trim(), pin, role: role || "Barista", lastLogin: null });
-  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
-  logActivity("added " + name.trim() + " to the team", "");
-  renderTeamList();
-  showToast(name.trim() + " added!");
+  // Open the profile overlay in "add new" mode
+  editingProfileIdx = -1;
+  document.getElementById("profile-title").textContent = "New Team Member";
+  document.getElementById("profile-name").value = "";
+  document.getElementById("profile-pin").value = "";
+  document.getElementById("profile-role").value = "Barista";
+  document.getElementById("profile-last-login").textContent = "—";
+  document.getElementById("profile-activity").innerHTML = "";
+  document.getElementById("profile-overlay").classList.add("show");
+  // Hide delete button, show save as "Add Member"
+  document.querySelector(".profile-delete").style.display = "none";
+  document.querySelector(".profile-save").textContent = "Add Team Member";
 }
 
 function saveSettings() {
@@ -2334,6 +2395,11 @@ function renderItemMgmt() {
 function openItemEdit(idx) {
   editingItemIdx = idx;
   const item = INVENTORY[idx];
+  document.getElementById("editor-title").textContent = "Edit Item";
+  document.getElementById("editor-save-btn").textContent = "Save Changes";
+  document.getElementById("editor-delete-btn").style.display = "";
+  document.getElementById("edit-category-wrap").style.display = "none";
+  document.getElementById("edit-frequency-wrap").style.display = "none";
   document.getElementById("edit-name").value = item.name;
   document.getElementById("edit-threshold").value = item.reorderThreshold;
   document.getElementById("edit-needed").value = item.needed;
@@ -2345,33 +2411,97 @@ function openItemEdit(idx) {
 
 function saveItemEdit() {
   if (editingItemIdx === null) return;
-  const item = INVENTORY[editingItemIdx];
-  const changes = [];
-  const newName = document.getElementById("edit-name").value;
-  const newThreshold = parseFloat(document.getElementById("edit-threshold").value);
-  const newNeeded = parseFloat(document.getElementById("edit-needed").value);
+
+  const newName = document.getElementById("edit-name").value.trim();
+  if (!newName) { showToast("Item name is required"); return; }
+  const newThreshold = parseFloat(document.getElementById("edit-threshold").value) || 0;
+  const newNeeded = parseFloat(document.getElementById("edit-needed").value) || 0;
   const newLeadTime = document.getElementById("edit-leadtime").value.trim();
   const newUsage = document.getElementById("edit-usage").value ? parseFloat(document.getElementById("edit-usage").value) : null;
   const newNotes = document.getElementById("edit-notes").value;
-  if (newName !== item.name) changes.push("name: " + item.name + " -> " + newName);
-  if (newThreshold !== item.reorderThreshold) changes.push("threshold: " + item.reorderThreshold + " -> " + newThreshold);
-  if (newNeeded !== item.needed) changes.push("order qty: " + item.needed + " -> " + newNeeded);
-  if (newLeadTime !== (item.leadTime || "")) changes.push("lead time: " + (item.leadTime || "none") + " -> " + (newLeadTime || "none"));
-  if (newUsage !== (item.usage || null)) changes.push("usage/wk: " + (item.usage || "none") + " -> " + (newUsage || "none"));
-  if (newNotes !== item.notes) changes.push("notes updated");
 
-  item.name = newName;
-  item.reorderThreshold = newThreshold || item.reorderThreshold;
-  item.needed = newNeeded || item.needed;
-  item.leadTime = newLeadTime;
-  item.usage = newUsage;
-  item.notes = newNotes;
+  if (editingItemIdx === -1) {
+    // Adding a new item
+    const newCategory = document.getElementById("edit-category").value;
+    const newFrequency = document.getElementById("edit-frequency").value;
+    const newItem = {
+      type: newCategory,
+      name: newName,
+      frequency: newFrequency,
+      stock: 0,
+      needed: newNeeded,
+      reorderThreshold: newThreshold,
+      notes: newNotes,
+      lastUpdated: null,
+      leadTime: newLeadTime || undefined,
+      usage: newUsage || undefined
+    };
+    INVENTORY.push(newItem);
+    localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+    logActivity("added new item " + newName, newCategory + " / " + newFrequency);
+    closeEditorBtn();
+    renderItems();
+    renderFilters();
+    renderTaskBanner();
+    renderItemMgmt();
+    showToast(newName + " added!");
+  } else {
+    // Editing existing item
+    const item = INVENTORY[editingItemIdx];
+    const changeList = [];
+    if (newName !== item.name) changeList.push("name: " + item.name + " -> " + newName);
+    if (newThreshold !== item.reorderThreshold) changeList.push("threshold: " + item.reorderThreshold + " -> " + newThreshold);
+    if (newNeeded !== item.needed) changeList.push("order qty: " + item.needed + " -> " + newNeeded);
+    if (newLeadTime !== (item.leadTime || "")) changeList.push("lead time: " + (item.leadTime || "none") + " -> " + (newLeadTime || "none"));
+    if (newUsage !== (item.usage || null)) changeList.push("usage/wk: " + (item.usage || "none") + " -> " + (newUsage || "none"));
+    if (newNotes !== item.notes) changeList.push("notes updated");
+
+    item.name = newName;
+    item.reorderThreshold = newThreshold || item.reorderThreshold;
+    item.needed = newNeeded || item.needed;
+    item.leadTime = newLeadTime;
+    item.usage = newUsage;
+    item.notes = newNotes;
+    localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+    if (changeList.length > 0) logActivity("edited item " + item.name, changeList.join(", "));
+    closeEditorBtn();
+    renderItems();
+    renderItemMgmt();
+    showToast("Item updated!");
+  }
+}
+
+function addNewItem() {
+  editingItemIdx = -1;
+  document.getElementById("editor-title").textContent = "Add New Item";
+  document.getElementById("editor-save-btn").textContent = "Add Item";
+  document.getElementById("editor-delete-btn").style.display = "none";
+  document.getElementById("edit-category-wrap").style.display = "";
+  document.getElementById("edit-frequency-wrap").style.display = "";
+  document.getElementById("edit-category").value = "Beverage Ingredients";
+  document.getElementById("edit-frequency").value = "Daily";
+  document.getElementById("edit-name").value = "";
+  document.getElementById("edit-threshold").value = "";
+  document.getElementById("edit-needed").value = "";
+  document.getElementById("edit-leadtime").value = "";
+  document.getElementById("edit-usage").value = "";
+  document.getElementById("edit-notes").value = "";
+  document.getElementById("editor-overlay").classList.add("show");
+}
+
+function deleteItem() {
+  if (editingItemIdx === null || editingItemIdx === -1) return;
+  const item = INVENTORY[editingItemIdx];
+  if (!confirm("Delete \"" + item.name + "\" from inventory?")) return;
+  logActivity("deleted item " + item.name, item.type + " / " + item.frequency);
+  INVENTORY.splice(editingItemIdx, 1);
   localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
-  if (changes.length > 0) logActivity("edited item " + item.name, changes.join(", "));
   closeEditorBtn();
   renderItems();
+  renderFilters();
+  renderTaskBanner();
   renderItemMgmt();
-  showToast("Item updated!");
+  showToast(item.name + " deleted");
 }
 
 function closeEditor(e) {
@@ -2396,18 +2526,8 @@ function init() {
   const saved = localStorage.getItem("kaleo_inventory");
   if (saved) {
     const savedData = JSON.parse(saved);
-    savedData.forEach((item, i) => {
-      if (i < INVENTORY.length) {
-        INVENTORY[i].stock = item.stock;
-        if (item.lastUpdated) INVENTORY[i].lastUpdated = item.lastUpdated;
-        if (item.lastUpdatedBy) INVENTORY[i].lastUpdatedBy = item.lastUpdatedBy;
-        if (item.reorderThreshold !== undefined) INVENTORY[i].reorderThreshold = item.reorderThreshold;
-        if (item.needed !== undefined) INVENTORY[i].needed = item.needed;
-        if (item.notes !== undefined) INVENTORY[i].notes = item.notes;
-        if (item.leadTime !== undefined) INVENTORY[i].leadTime = item.leadTime;
-        if (item.usage !== undefined) INVENTORY[i].usage = item.usage;
-      }
-    });
+    INVENTORY.length = 0;
+    savedData.forEach(item => INVENTORY.push(item));
   }
 
   // Load saved settings
