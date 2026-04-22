@@ -208,6 +208,8 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
 /* Hidden utility */
 .hidden { display: none !important; }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -431,6 +433,29 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
 </div>
 
 <script>
+// ========== FIREBASE ==========
+const firebaseConfig = {
+  apiKey: "AIzaSyDz-wAodz2TTXldeomFeQ8fQttrIlYUeFM",
+  authDomain: "kaleo-inventory.firebaseapp.com",
+  databaseURL: "https://kaleo-inventory-default-rtdb.firebaseio.com",
+  projectId: "kaleo-inventory",
+  storageBucket: "kaleo-inventory.firebasestorage.app",
+  messagingSenderId: "619606154641",
+  appId: "1:619606154641:web:0caded4ef6d4b1e5768e30"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Save to Firebase
+function fbSave(path, data) {
+  db.ref(path).set(data);
+}
+
+// Load from Firebase (returns promise)
+function fbLoad(path) {
+  return db.ref(path).once('value').then(snap => snap.val());
+}
+
 // ========== DATA ==========
 const BARISTAS = [
   { name: "Jessica", pin: "1234", role: "General Manager" },
@@ -1723,6 +1748,9 @@ let activeFilter = "All";
 let activeTaskFilter = "all"; // "all", "overdue", "due-today"
 let editingItemIdx = null;
 let dashFilter = "all"; // "all", "out-of-stock", "order-now", "overdue", "due-today"
+let activityLog = [];
+let savedSettingsCache = null;
+let lastAlertCache = null;
 
 // ========== LOGIN ==========
 function pinInput(digit) {
@@ -1755,7 +1783,7 @@ function tryLogin() {
   if (user) {
     currentUser = user;
     user.lastLogin = new Date().toISOString();
-    localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+    fbSave("baristas", BARISTAS);
     logActivity("logged in", "");
     document.getElementById("login-screen").classList.add("hidden");
     document.getElementById("app-screen").classList.remove("hidden");
@@ -1808,7 +1836,13 @@ function switchTab(tab) {
   document.getElementById("tab-dashboard").classList.toggle("hidden", tab !== "dashboard");
   document.getElementById("tab-settings").classList.toggle("hidden", tab !== "settings");
   if (tab === "dashboard") renderDashboard();
-  if (tab === "settings") renderBaristaList();
+  if (tab === "settings") {
+    if (savedSettingsCache) {
+      document.getElementById("gm-email").value = savedSettingsCache.email || "jessica@kaleocoffeehouse.com";
+      document.getElementById("notify-setting").value = savedSettingsCache.notify || "always";
+    }
+    renderBaristaList();
+  }
 }
 
 // ========== STATUS LOGIC ==========
@@ -2019,7 +2053,7 @@ function submitCount() {
   logActivity("submitted inventory count (" + changedDetails.length + " items)", changedDetails.slice(0, 8).join(", ") + (changedDetails.length > 8 ? " + " + (changedDetails.length - 8) + " more" : ""));
 
   // Save inventory state
-  localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+  fbSave("inventory", INVENTORY);
 
   // Send email alert if there are items to reorder
   if (alertItems.length > 0) {
@@ -2058,13 +2092,14 @@ function sendAlertEmail(alertItems) {
   console.log("Body:", body);
 
   // Store the last alert for dashboard display
-  localStorage.setItem("kaleo_last_alert", JSON.stringify({
+  lastAlertCache = {
     time: new Date().toISOString(),
     to: email,
     items: alertItems,
     subject: subject,
     body: body
-  }));
+  };
+  fbSave("lastAlert", lastAlertCache);
 }
 
 // ========== NOTES ==========
@@ -2169,7 +2204,7 @@ function renderDashboard() {
   }
 
   // Show last alert info (always visible)
-  const lastAlert = JSON.parse(localStorage.getItem("kaleo_last_alert") || "null");
+  const lastAlert = lastAlertCache;
   if (lastAlert) {
     const alertTime = new Date(lastAlert.time);
     alertHtml += '<div class="alert-section-title">Last Email Alert</div>';
@@ -2191,18 +2226,17 @@ function logActivity(action, details) {
     action: action,
     details: details
   };
-  let log = JSON.parse(localStorage.getItem("kaleo_activity_log") || "[]");
-  log.unshift(entry);
-  if (log.length > 500) log = log.slice(0, 500);
-  localStorage.setItem("kaleo_activity_log", JSON.stringify(log));
+  activityLog.unshift(entry);
+  if (activityLog.length > 200) activityLog.pop();
+  fbSave("activityLog", activityLog);
 }
 
 function getActivityLog() {
-  return JSON.parse(localStorage.getItem("kaleo_activity_log") || "[]");
+  return activityLog;
 }
 
 function getUserActivity(userName, limit) {
-  return getActivityLog().filter(e => e.user === userName).slice(0, limit || 10);
+  return activityLog.filter(e => e.user === userName).slice(0, limit || 10);
 }
 
 function formatLogTime(ts) {
@@ -2312,7 +2346,7 @@ function saveProfile() {
   if (editingProfileIdx === -1) {
     // Adding new team member
     BARISTAS.push({ name: newName, pin: newPin, role: newRole, lastLogin: null });
-    localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+    fbSave("baristas", BARISTAS);
     logActivity("added " + newName + " to the team", "");
     closeProfile();
     renderTeamList();
@@ -2324,7 +2358,7 @@ function saveProfile() {
     b.name = newName;
     b.pin = newPin;
     b.role = newRole;
-    localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+    fbSave("baristas", BARISTAS);
     logActivity("updated profile for " + newName, oldName !== newName ? "Renamed from " + oldName : "");
     document.getElementById("profile-title").textContent = newName;
     renderTeamList();
@@ -2338,7 +2372,7 @@ function deleteProfile() {
   if (!confirm("Remove " + b.name + " from the team?")) return;
   logActivity("removed " + b.name + " from the team", "");
   BARISTAS.splice(editingProfileIdx, 1);
-  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+  fbSave("baristas", BARISTAS);
   closeProfile();
   showToast("Team member removed");
 }
@@ -2361,8 +2395,9 @@ function addBarista() {
 function saveSettings() {
   const email = document.getElementById("gm-email").value;
   const notify = document.getElementById("notify-setting").value;
-  localStorage.setItem("kaleo_settings", JSON.stringify({ email, notify }));
-  localStorage.setItem("kaleo_baristas", JSON.stringify(BARISTAS));
+  savedSettingsCache = { email, notify };
+  fbSave("settings", { email, notify });
+  fbSave("baristas", BARISTAS);
   logActivity("updated notification settings", "Email: " + email + ", Mode: " + notify);
   showToast("Settings saved!");
 }
@@ -2437,7 +2472,7 @@ function saveItemEdit() {
       usage: newUsage || undefined
     };
     INVENTORY.push(newItem);
-    localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+    fbSave("inventory", INVENTORY);
     logActivity("added new item " + newName, newCategory + " / " + newFrequency);
     closeEditorBtn();
     renderItems();
@@ -2462,7 +2497,7 @@ function saveItemEdit() {
     item.leadTime = newLeadTime;
     item.usage = newUsage;
     item.notes = newNotes;
-    localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+    fbSave("inventory", INVENTORY);
     if (changeList.length > 0) logActivity("edited item " + item.name, changeList.join(", "));
     closeEditorBtn();
     renderItems();
@@ -2495,7 +2530,7 @@ function deleteItem() {
   if (!confirm("Delete \"" + item.name + "\" from inventory?")) return;
   logActivity("deleted item " + item.name, item.type + " / " + item.frequency);
   INVENTORY.splice(editingItemIdx, 1);
-  localStorage.setItem("kaleo_inventory", JSON.stringify(INVENTORY));
+  fbSave("inventory", INVENTORY);
   closeEditorBtn();
   renderItems();
   renderFilters();
@@ -2520,28 +2555,95 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove("show"), 3000);
 }
 
-// ========== INIT ==========
-function init() {
-  // Load saved inventory if available
-  const saved = localStorage.getItem("kaleo_inventory");
-  if (saved) {
-    const savedData = JSON.parse(saved);
+// ========== REAL-TIME LISTENERS ==========
+function setupRealtimeListeners() {
+  db.ref("inventory").on("value", snap => {
+    const data = snap.val();
+    if (!data) return;
     INVENTORY.length = 0;
-    savedData.forEach(item => INVENTORY.push(item));
-  }
+    const arr = Array.isArray(data) ? data : Object.values(data);
+    arr.forEach(item => { if (item) INVENTORY.push(item); });
+    // Re-render if logged in
+    if (currentUser) {
+      renderItems();
+      renderTaskBanner();
+      renderFilters();
+      if (!document.getElementById("tab-dashboard").classList.contains("hidden")) {
+        renderDashboard();
+      }
+    }
+  });
 
-  // Load saved settings
-  const settings = JSON.parse(localStorage.getItem("kaleo_settings") || "null");
-  if (settings) {
-    // Will apply when settings tab opens
-  }
-
-  // Load saved baristas
-  const savedBaristas = localStorage.getItem("kaleo_baristas");
-  if (savedBaristas) {
-    const parsed = JSON.parse(savedBaristas);
+  db.ref("baristas").on("value", snap => {
+    const data = snap.val();
+    if (!data) return;
     BARISTAS.length = 0;
-    parsed.forEach(b => BARISTAS.push(b));
+    const arr = Array.isArray(data) ? data : Object.values(data);
+    arr.forEach(b => { if (b) BARISTAS.push(b); });
+    // Update current user reference if logged in
+    if (currentUser) {
+      const updated = BARISTAS.find(b => b.pin === currentUser.pin);
+      if (updated) currentUser = updated;
+    }
+  });
+
+  db.ref("activityLog").on("value", snap => {
+    const data = snap.val();
+    if (data) {
+      activityLog = Array.isArray(data) ? data : Object.values(data);
+    }
+  });
+}
+
+// ========== INIT ==========
+async function init() {
+  try {
+    const [savedInv, savedBaristas, savedSettings, savedLog, savedAlert] = await Promise.all([
+      fbLoad("inventory"),
+      fbLoad("baristas"),
+      fbLoad("settings"),
+      fbLoad("activityLog"),
+      fbLoad("lastAlert")
+    ]);
+
+    // Inventory
+    if (savedInv) {
+      INVENTORY.length = 0;
+      // Firebase converts arrays to objects if there are gaps, so handle both
+      const arr = Array.isArray(savedInv) ? savedInv : Object.values(savedInv);
+      arr.forEach(item => { if (item) INVENTORY.push(item); });
+    }
+    // If first time (no data in Firebase), save defaults
+    if (!savedInv) fbSave("inventory", INVENTORY);
+
+    // Baristas
+    if (savedBaristas) {
+      BARISTAS.length = 0;
+      const arr = Array.isArray(savedBaristas) ? savedBaristas : Object.values(savedBaristas);
+      arr.forEach(b => { if (b) BARISTAS.push(b); });
+    }
+    if (!savedBaristas) fbSave("baristas", BARISTAS);
+
+    // Activity log
+    if (savedLog) {
+      activityLog = Array.isArray(savedLog) ? savedLog : Object.values(savedLog);
+    }
+
+    // Settings
+    if (savedSettings) {
+      savedSettingsCache = savedSettings;
+    }
+
+    // Last alert
+    if (savedAlert) {
+      lastAlertCache = savedAlert;
+    }
+
+    // Set up real-time listeners for cross-device sync
+    setupRealtimeListeners();
+
+  } catch (err) {
+    console.error("Firebase init error, falling back to defaults:", err);
   }
 }
 
