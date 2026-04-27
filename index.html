@@ -2495,8 +2495,10 @@ function openItemEdit(idx) {
   document.getElementById("editor-title").textContent = "Edit Item";
   document.getElementById("editor-save-btn").textContent = "Save Changes";
   document.getElementById("editor-delete-btn").style.display = "";
-  document.getElementById("edit-category-wrap").style.display = "none";
-  document.getElementById("edit-frequency-wrap").style.display = "none";
+  document.getElementById("edit-category-wrap").style.display = "";
+  document.getElementById("edit-category").value = item.type;
+  document.getElementById("edit-frequency-wrap").style.display = "";
+  document.getElementById("edit-frequency").value = item.frequency;
   document.getElementById("edit-name").value = item.name;
   document.getElementById("edit-threshold").value = item.reorderThreshold;
   document.getElementById("edit-needed").value = item.needed;
@@ -2546,14 +2548,20 @@ function saveItemEdit() {
     // Editing existing item
     const item = INVENTORY[editingItemIdx];
     const changeList = [];
+    const newCategory = document.getElementById("edit-category").value;
+    if (newCategory !== item.type) changeList.push("category: " + item.type + " -> " + newCategory);
     if (newName !== item.name) changeList.push("name: " + item.name + " -> " + newName);
     if (newThreshold !== item.reorderThreshold) changeList.push("threshold: " + item.reorderThreshold + " -> " + newThreshold);
     if (newNeeded !== item.needed) changeList.push("order qty: " + item.needed + " -> " + newNeeded);
     if (newLeadTime !== (item.leadTime || "")) changeList.push("lead time: " + (item.leadTime || "none") + " -> " + (newLeadTime || "none"));
     if (newUsage !== (item.usage || null)) changeList.push("usage/wk: " + (item.usage || "none") + " -> " + (newUsage || "none"));
+    const newFrequency = document.getElementById("edit-frequency").value;
+    if (newFrequency !== item.frequency) changeList.push("frequency: " + item.frequency + " -> " + newFrequency);
     if (newNotes !== item.notes) changeList.push("notes updated");
 
     item.name = newName;
+    item.type = newCategory;
+    item.frequency = newFrequency;
     item.reorderThreshold = newThreshold || item.reorderThreshold;
     item.needed = newNeeded || item.needed;
     item.leadTime = newLeadTime;
@@ -2563,6 +2571,8 @@ function saveItemEdit() {
     if (changeList.length > 0) logActivity("edited item " + item.name, changeList.join(", "));
     closeEditorBtn();
     renderItems();
+    renderFilters();
+    renderTaskBanner();
     renderItemMgmt();
     showToast("Item updated!");
   }
