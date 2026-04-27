@@ -1833,6 +1833,11 @@ function tryLogin() {
     setTimeout(() => { pinCode = ""; updateDots(); }, 600);
   }
 }
+function refreshSession() {
+  if (currentUser) {
+    sessionStorage.setItem("kaleo_session", JSON.stringify({ pin: currentUser.pin, expires: Date.now() + 15 * 60 * 1000 }));
+  }
+}
 function logout() {
   currentUser = null;
   pinCode = "";
@@ -1846,6 +1851,7 @@ function logout() {
 
 // ========== TABS ==========
 function switchTab(tab) {
+  refreshSession();
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
   document.getElementById("tab-count").classList.toggle("hidden", tab !== "count");
   document.getElementById("tab-dashboard").classList.toggle("hidden", tab !== "dashboard");
@@ -2081,6 +2087,7 @@ function confirmUnchanged() {
 }
 
 function confirmItem(idx) {
+  refreshSession();
   const item = INVENTORY[idx];
   if (!item) return;
   const today = new Date().toISOString().split("T")[0];
@@ -2095,6 +2102,7 @@ function confirmItem(idx) {
 
 // ========== SUBMIT ==========
 function submitCount() {
+  refreshSession();
   const alertItems = [];
 
   const changedDetails = [];
@@ -2509,6 +2517,7 @@ function openItemEdit(idx) {
 }
 
 function saveItemEdit() {
+  refreshSession();
   if (editingItemIdx === null) return;
 
   const newName = document.getElementById("edit-name").value.trim();
@@ -2678,23 +2687,40 @@ async function init() {
       fbLoad("lastAlert")
     ]);
 
-    // Inventory
+    // Inventory — always prefer Firebase data, only seed defaults on a truly empty database
     if (savedInv) {
       INVENTORY.length = 0;
       // Firebase converts arrays to objects if there are gaps, so handle both
       const arr = Array.isArray(savedInv) ? savedInv : Object.values(savedInv);
       arr.forEach(item => { if (item) INVENTORY.push(item); });
+    } else {
+      // Double-check: try loading one more time to avoid race conditions
+      const recheck = await fbLoad("inventory");
+      if (recheck) {
+        INVENTORY.length = 0;
+        const arr = Array.isArray(recheck) ? recheck : Object.values(recheck);
+        arr.forEach(item => { if (item) INVENTORY.push(item); });
+      } else {
+        // Truly first time — seed defaults
+        fbSave("inventory", INVENTORY);
+      }
     }
-    // If first time (no data in Firebase), save defaults
-    if (!savedInv) fbSave("inventory", INVENTORY);
 
-    // Baristas
+    // Baristas — same protection
     if (savedBaristas) {
       BARISTAS.length = 0;
       const arr = Array.isArray(savedBaristas) ? savedBaristas : Object.values(savedBaristas);
       arr.forEach(b => { if (b) BARISTAS.push(b); });
+    } else {
+      const recheck = await fbLoad("baristas");
+      if (recheck) {
+        BARISTAS.length = 0;
+        const arr = Array.isArray(recheck) ? recheck : Object.values(recheck);
+        arr.forEach(b => { if (b) BARISTAS.push(b); });
+      } else {
+        fbSave("baristas", BARISTAS);
+      }
     }
-    if (!savedBaristas) fbSave("baristas", BARISTAS);
 
     // Activity log
     if (savedLog) {
