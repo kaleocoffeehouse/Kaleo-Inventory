@@ -336,7 +336,7 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
         <h2 style="margin-top: 24px;">Item Management</h2>
         <div class="settings-card">
           <input type="text" class="item-mgmt-search" id="item-mgmt-search" placeholder="Search items..." oninput="renderItemMgmt()">
-          <button class="add-btn" id="add-item-btn" onclick="addNewItem()" style="margin-bottom: 12px;">+ Add Item</button>
+          <button class="add-btn" id="add-item-btn" onclick="typeof addNewItem==='function'?addNewItem():alert('Still loading, please wait a moment and try again.')" style="margin-bottom: 12px;">+ Add Item</button>
           <div class="item-mgmt-list" id="item-mgmt-list"></div>
         </div>
 
@@ -397,7 +397,7 @@ body { font-family: 'Lora', Georgia, serif; background: var(--gray-50); color: v
 
 <!-- Item Editor Modal -->
 <div class="notes-overlay" id="editor-overlay" onclick="closeEditor(event)">
-  <div class="notes-popup" style="max-height: 80vh; overflow-y: auto;">
+  <div class="notes-popup">
     <h3 id="editor-title">Edit Item</h3>
     <div style="margin-top: 12px;">
       <label style="font-size: 13px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 4px;">Item Name</label>
@@ -2664,7 +2664,25 @@ function setupRealtimeListeners() {
     // Update current user reference if logged in
     if (currentUser) {
       const updated = BARISTAS.find(b => b.pin === currentUser.pin);
-      if (updated) currentUser = updated;
+      if (updated) {
+        currentUser = updated;
+        // Re-apply role-based UI in case role changed
+        document.getElementById("user-name").textContent = updated.name;
+        document.getElementById("user-role").textContent = updated.role;
+        if (updated.role === "General Manager") {
+          document.querySelector('[data-tab="settings"]').classList.remove("hidden");
+          document.getElementById("gm-only-settings").classList.remove("hidden");
+          document.getElementById("lead-settings").classList.remove("hidden");
+          document.getElementById("add-item-btn").style.display = "";
+        } else if (updated.role === "Inventory Lead") {
+          document.querySelector('[data-tab="settings"]').classList.remove("hidden");
+          document.getElementById("gm-only-settings").classList.add("hidden");
+          document.getElementById("lead-settings").classList.remove("hidden");
+          document.getElementById("add-item-btn").style.display = "";
+        } else {
+          document.querySelector('[data-tab="settings"]').classList.add("hidden");
+        }
+      }
     }
   });
 
